@@ -164,6 +164,12 @@ export class AppComponent implements OnInit, AfterViewInit {
           );
         }
         break;
+
+      case 'addNewRouteToFolder':
+        if (payload.subject === 'routeFolder') {
+          this.environmentsService.addRoute(payload.subjectUUID)
+        }
+      break;
     }
   }
 

@@ -14,7 +14,7 @@ export class Logger {
   constructor(
     private loggerPrefix: string,
     protected toastService?: ToastsService
-  ) {}
+  ) { }
 
   /**
    * Log a message and display a toast
@@ -57,6 +57,7 @@ export class Logger {
    * @param message
    */
   public error(message: string) {
+    console.log(message);
     MainAPI.send('APP_LOGS', {
       type: 'error',
       message: this.buildMessage(message)

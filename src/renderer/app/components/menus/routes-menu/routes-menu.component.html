@@ -21,9 +21,9 @@
               placeholder="Filter"
               [formControl]="routesFilter"
               [ngbTooltip]="
-                'Filter routes (' +
-                (os === 'darwin' ? 'Cmd' : 'Ctrl') +
-                '+Shift+F)'
+              'Filter routes (' +
+              (os === 'darwin' ? 'Cmd' : 'Ctrl') +
+              '+Shift+F)'
               "
               triggers="hover"
               [appFocusOnEvent]="focusableInputs.ROUTE_FILTER"
@@ -43,6 +43,7 @@
       </ul>
     </div>
 
+
     <ng-container *ngIf="routeList$ | async as routeList">
       <ul
         class="nav flex-column menu-list"
@@ -50,6 +51,12 @@
         cdkDropList
         (cdkDropListDropped)="reorderRoutes($event)"
       >
+        <li>
+          Active Route: {{ (activeRoute$ | async)?.uuid }}
+        </li>
+        <li>
+          Active Folder: {{ (activeFolder$ | async)?.uuid}}
+        </li>
         <li
           class="nav-item"
           *ngFor="let environmentRoute of routeList"
@@ -61,8 +68,8 @@
           <a
             class="nav-link"
             [ngClass]="{
-              active: (activeRoute$ | async)?.uuid === environmentRoute.uuid,
-              'route-disabled': !environmentRoute.enabled
+            active: (activeRoute$ | async)?.uuid === environmentRoute.uuid,
+            'route-disabled': !environmentRoute.enabled
             }"
             (click)="selectRoute(environmentRoute.uuid)"
             (contextmenu)="openContextMenu(environmentRoute.uuid, $event)"
@@ -71,19 +78,19 @@
               *ngIf="settings$ | async as settings"
               class="route-path"
               [ngClass]="{
-                ellipsis: settings.truncateRouteName,
-                'text-break': !settings.truncateRouteName
+              ellipsis: settings.truncateRouteName,
+              'text-break': !settings.truncateRouteName
               }"
             >
               <span
                 *ngIf="duplicatedRoutes$ | async as duplicatedRoutes"
                 class="text-warning"
                 ngbTooltip="Route is duplicated (same endpoint and method)"
-                ><app-svg
+              ><app-svg
                   *ngIf="
-                    duplicatedRoutes[activeEnvironment.uuid]?.has(
-                      environmentRoute.uuid
-                    )
+                  duplicatedRoutes[activeEnvironment.uuid]?.has(
+                  environmentRoute.uuid
+                  )
                   "
                   icon="warning"
                   class="pr-2"
@@ -91,9 +98,9 @@
               </span>
               <span
                 class="badge badge-default http-method-{{
-                  environmentRoute.method
+                environmentRoute.method
                 }} float-right"
-                >{{ environmentRoute.method | uppercase }}</span
+              >{{ environmentRoute.method | uppercase }}</span
               >
               /{{ environmentRoute.endpoint }}
             </div>
@@ -104,7 +111,111 @@
         </li>
       </ul>
     </ng-container>
+    <ng-container *ngIf="routeFolderList$ | async as folderList">
+      <ul
+        class="nav flex-column menu-list"
+        #routesMenu
+        cdkDropList
+        (cdkDropListDropped)="reorderRoutes($event)"
+      >
+        <li
+          class="nav-item"
+          *ngFor="let folder of folderList"
+          cdkDrag
+          cdkDragLockAxis="y"
+          cdkDragBoundary=".routes-menu .nav.menu-list"
+          [cdkDragDisabled]="dragIsDisabled"
+        >
+            <div
+              *ngIf="settings$ | async as settings"
+              class="route-path"
+              [ngClass]="{
+              ellipsis: settings.truncateRouteName,
+              'text-break': !settings.truncateRouteName
+              }"
+            >
+              <!-- TODO: Add new style for folder -->
+              <div class="{{ folder.folderName }}-header">
+                <a
+                  class="nav-link"
+                  [ngClass]="{ 
+                    active: (activeFolder$ | async)?.uuid === folder.uuid
+                  }"
+                  (click)="selectFolder(folder.uuid)"
+                  (contextmenu)="openContextMenu(folder.uuid, $event, true)"
+                >
+                  <span> 
+                    <app-svg icon="folder_open"></app-svg>
+                  </span>
+                  {{ folder.folderName }} - {{folder.isOpen? 'opened': 'closed'}}
+                </a>
+              </div>
 
+              <!-- Routes in folder -->
+              <div 
+                *ngIf = "folder.isOpen && folder.routes.length > 0"
+                id="{{folder.folderName}}-routes"
+              >
+                <ul>
+                  <li
+                    class="nav-item"
+                    *ngFor="let route of folder.routes"
+                    cdkDrag
+                    cdkDragLockAxis="y"
+                    cdkDragBoundary=".routes-menu .nav.menu-list"
+                    [cdkDragDisabled]="dragIsDisabled"
+                  >
+                    <a
+                      class="nav-link"
+                      [ngClass]="{
+                      active: (activeRoute$ | async)?.uuid ===  route.uuid,
+                      'route-disabled': !route.enabled
+                      }"
+                      (click)="selectRoute(route.uuid, folder.uuid)"
+                      (contextmenu)="openContextMenu(route.uuid, $event)"
+                    >
+                      <div
+                        *ngIf="settings$ | async as settings"
+                        class="route-path"
+                        [ngClass]="{
+                        ellipsis: settings.truncateRouteName,
+                        'text-break': !settings.truncateRouteName
+                        }"
+                      >
+                        <span
+                          *ngIf="duplicatedRoutes$ | async as duplicatedRoutes"
+                          class="text-warning"
+                          ngbTooltip="Route is duplicated (same endpoint and method)"
+                        ><app-svg
+                            *ngIf="
+                            duplicatedRoutes[activeEnvironment.uuid]?.has(
+                            route.uuid
+                            )
+                            "
+                            icon="warning"
+                            class="pr-2"
+                          ></app-svg>
+                        </span>
+                        <span
+                          class="badge badge-default http-method-{{
+                          route.method
+                          }} float-right"
+                        >{{ route.method | uppercase }}</span
+                        >
+                        /{{ route.endpoint }}
+                      </div>
+                      <div class="menu-subtitle ellipsis">
+                        {{ route.documentation }}
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+
+              </div>
+            </div>
+        </li>
+      </ul>
+    </ng-container>
     <div
       appResizeColumn
       type="routes"
