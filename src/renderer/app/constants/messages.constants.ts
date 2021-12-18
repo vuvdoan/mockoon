@@ -31,10 +31,6 @@ export const Messages: {
     message: `Server ${messageParams.uuid} has been stopped`,
     showToast: false
   }),
-  ADD_NEW_FOLDER_EVENT: (messageParams) => ({
-    message: 'Add new folder',
-    showToast: false
-  }),
   PORT_ALREADY_USED: (messageParams) => {
     const message = `Port ${messageParams.port} is already in use`;
 

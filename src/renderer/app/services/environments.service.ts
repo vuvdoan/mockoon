@@ -36,9 +36,6 @@ import {
   RouteResponseProperties
 } from 'src/renderer/app/models/route.model';
 import {
-  RouteFolderProperties
-} from 'src/renderer/app/models/route-folder.model';
-import {
   DraggableContainerNames,
   ScrollDirection
 } from 'src/renderer/app/models/ui.model';
@@ -53,8 +50,6 @@ import { UIService } from 'src/renderer/app/services/ui.service';
 import {
   addEnvironmentAction,
   addRouteAction,
-  addRouteToFolderAction,
-  addFolderAction,
   addRouteResponseAction,
   duplicateRouteToAnotherEnvironmentAction,
   moveEnvironmentsAction,
@@ -69,15 +64,12 @@ import {
   setActiveEnvironmentLogTabAction,
   setActiveEnvironmentLogUUIDAction,
   setActiveRouteAction,
-  setActiveFolderAction,
-  toogleActiveFolderAction,
   setActiveRouteResponseAction,
   setActiveTabAction,
   setActiveViewAction,
   startRouteDuplicationToAnotherEnvironmentAction,
   updateEnvironmentAction,
   updateRouteAction,
-  updateRouteFolderAction,
   updateRouteResponseAction,
   updateSettingsAction,
   updateUIStateAction
@@ -147,9 +139,9 @@ export class EnvironmentsService extends Logger {
                 map((environment) =>
                   environment
                     ? {
-                      environment,
-                      path: environmentItem.path
-                    }
+                        environment,
+                        path: environmentItem.path
+                      }
                     : null
                 )
               )
@@ -274,7 +266,7 @@ export class EnvironmentsService extends Logger {
   /**
    * Set active route by UUID or navigation
    */
-  public setActiveRoute(routeUUIDOrDirection: string | ReducerDirectionType, folderUUID?: string) {
+  public setActiveRoute(routeUUIDOrDirection: string | ReducerDirectionType) {
     const activeRouteUUID = this.store.get('activeRouteUUID');
 
     if (activeRouteUUID && activeRouteUUID !== routeUUIDOrDirection) {
@@ -284,26 +276,8 @@ export class EnvironmentsService extends Logger {
       ) {
         this.store.update(navigateRoutesAction(routeUUIDOrDirection));
       } else {
-        this.store.update(setActiveRouteAction(routeUUIDOrDirection, folderUUID));
+        this.store.update(setActiveRouteAction(routeUUIDOrDirection));
       }
-    }
-  }
-
-  /**
-   * Set active folder by UUID or navigation. 
-   * Folder can be active and have two different states: opened or closed
-   */
-  public toogleFolder(folderUIDOrDirection: string | ReducerDirectionType) {
-    const activeRouteUUID = this.store.get('activeRouteUUID');
-
-    // FIXME: why do we need ReducerDirectionType here?
-
-    if (activeRouteUUID && activeRouteUUID !== folderUIDOrDirection) {
-
-      // first set active folder
-      //this.store.update(setActiveFolderAction(folderUIDOrDirection));
-      // then toogle folder
-      this.store.update(toogleActiveFolderAction(folderUIDOrDirection))
     }
   }
 
@@ -486,31 +460,12 @@ export class EnvironmentsService extends Logger {
   /**
    * Add a new route and save it in the store
    */
-  public addRoute(parentFolder?: string) {
-    if (this.store.getActiveEnvironment()) {
-      const newRoute = this.schemasBuilderService.buildRoute();
-      if (parentFolder) {
-        this.store.update(addRouteToFolderAction(newRoute, parentFolder));
-      } else {
-        this.store.update(addRouteAction(newRoute));
-      }
-
-      this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
-      this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
-      this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
-    }
-  }
-
-  /**
-   * Add a new folder and save it in the store
-   */
-  public addFolder() {
-    this.logMessage('info', 'ADD_NEW_FOLDER_EVENT');
+  public addRoute() {
     if (this.store.getActiveEnvironment()) {
       this.store.update(
-        addFolderAction(this.schemasBuilderService.buildFolder('New Folder'))
+        addRouteAction(this.schemasBuilderService.buildRoute())
       );
-      //this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
+      this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
       this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
       this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
     }
@@ -599,7 +554,6 @@ export class EnvironmentsService extends Logger {
 
   /**
    * Enable and disable a route
-   * TODO: check if we need to use Observable here
    */
   public toggleRoute(routeUUID?: string) {
     const selectedRoute = this.store
@@ -665,17 +619,9 @@ export class EnvironmentsService extends Logger {
   /**
    * Update the active route
    */
-  public updateActiveRoute(properties: RouteProperties, parentFolderUuid?: string) {
-    this.store.update(updateRouteAction(properties, parentFolderUuid));
+  public updateActiveRoute(properties: RouteProperties) {
+    this.store.update(updateRouteAction(properties));
   }
-
-  /**
-   * Update the active folder
-   */
-  public updateActiveFolder(properties: RouteFolderProperties) {
-    this.store.update(updateRouteFolderAction(properties));
-  }
-
 
   /**
    * Update the active route response

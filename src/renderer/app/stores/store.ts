@@ -16,13 +16,10 @@ import {
 import { Toast } from 'src/renderer/app/models/toasts.model';
 import { Actions } from 'src/renderer/app/stores/actions';
 import { environmentReducer } from 'src/renderer/app/stores/reducer';
-import { environment } from 'src/renderer/environments/environment';
 import { Settings } from 'src/shared/models/settings.model';
-import { RouteFolder } from '../../../../../commons/dist/cjs/models/routeFolder.model';
 
 export type ViewsNameType =
   | 'ENV_ROUTES'
-  | 'ENV_FOLDERS'
   | 'ENV_HEADERS'
   | 'ENV_LOGS'
   | 'ENV_PROXY'
@@ -60,7 +57,6 @@ export type DuplicateRouteToAnotherEnvironment = {
 export type StoreType = {
   activeTab: TabsNameType;
   activeView: ViewsNameType;
-  activeFolderUUID: string;
   activeEnvironmentLogsTab: EnvironmentLogsTabsNameType;
   activeEnvironmentUUID: string;
   activeRouteUUID: string;
@@ -88,7 +84,6 @@ export class Store {
     activeEnvironmentLogsUUID: {},
     activeEnvironmentUUID: null,
     activeRouteUUID: null,
-    activeFolderUUID: null,
     activeRouteResponseUUID: null,
     environments: [],
     environmentsStatus: {},
@@ -115,7 +110,7 @@ export class Store {
     routesFilter: ''
   });
 
-  constructor() { }
+  constructor() {}
 
   /**
    * Select store element
@@ -204,11 +199,11 @@ export class Store {
         map((store) =>
           store.activeEnvironmentUUID
             ? store.environmentsLogs[store.activeEnvironmentUUID].find(
-              (environmentLog) =>
-                environmentLog.routeUUID === store.activeRouteUUID &&
-                environmentLog.routeResponseUUID ===
-                store.activeRouteResponseUUID
-            )
+                (environmentLog) =>
+                  environmentLog.routeUUID === store.activeRouteUUID &&
+                  environmentLog.routeResponseUUID ===
+                    store.activeRouteResponseUUID
+              )
             : null
         )
       );
@@ -216,34 +211,17 @@ export class Store {
 
   /**
    * Select active route observable
-   * First look for the top level route. If not found look for routes in folders
    */
   public selectActiveRoute(): Observable<Route> {
-    let selectedRoute: Observable<Route>;
-
-    selectedRoute = this.selectActiveEnvironment().pipe(
-      map((environment) => {
-        if (environment) {
-          let selectedRoute = environment.routes.find(
-            (route) => route.uuid === this.store$.value.activeRouteUUID)
-
-          // if we cannot find any route in the top level, we look inside environments folders.
-          // if a route within a folder is selected, the folder is also selected 
-          if (!selectedRoute) {
-            selectedRoute = environment.folders
-              .find((folder) => folder.uuid === this.store$.value.activeFolderUUID)
-              .routes.find((route) => route.uuid === this.store$.value.activeRouteUUID)
-            // console.log('selectActiveRoute from folder is called: ', selectedRoute);
-          }
-
-          return selectedRoute;
-        } else {
-          return null
-        }
-      })
+    return this.selectActiveEnvironment().pipe(
+      map((environment) =>
+        environment
+          ? environment.routes.find(
+              (route) => route.uuid === this.store$.value.activeRouteUUID
+            )
+          : null
+      )
     );
-
-    return selectedRoute;
   }
 
   /**
@@ -254,9 +232,9 @@ export class Store {
       map((route) =>
         route
           ? route.responses.find(
-            (routeResponse) =>
-              routeResponse.uuid === this.store$.value.activeRouteResponseUUID
-          )
+              (routeResponse) =>
+                routeResponse.uuid === this.store$.value.activeRouteResponseUUID
+            )
           : null
       )
     );
@@ -270,9 +248,9 @@ export class Store {
       map((route) =>
         route
           ? route.responses.findIndex(
-            (routeResponse) =>
-              routeResponse.uuid === this.store$.value.activeRouteResponseUUID
-          ) + 1
+              (routeResponse) =>
+                routeResponse.uuid === this.store$.value.activeRouteResponseUUID
+            ) + 1
           : null
       )
     );
@@ -317,54 +295,10 @@ export class Store {
       return null;
     }
 
-    let activeRoute: Route = activeEnvironment.routes.find(
+    return activeEnvironment.routes.find(
       (route) => route.uuid === this.store$.value.activeRouteUUID
     );
-
-    // no route found in the top level. Start digging in folders
-    // assuming, when the active route within a fodler is selected, this folder is also marked es selected
-    if (!activeRoute) {
-      activeRoute = activeEnvironment.folders.find((f) => f.uuid === this.store$.value.activeFolderUUID)
-        .routes.find((route) => route.uuid === this.store$.value.activeRouteUUID)
-    }
-
-    return activeRoute;
   }
-
-
-  /**
-   * Get active folder value
-   */
-  public getActiveFolder(): RouteFolder {
-    const activeEnvironment = this.store$.value.environments.find(
-      (environment) => environment.uuid == this.store$.value.activeEnvironmentUUID
-    );
-
-    if (!activeEnvironment || !activeEnvironment.folders) {
-      return null;
-    }
-
-    return activeEnvironment.folders.find(
-      (folder) => folder.uuid === this.store$.value.activeFolderUUID
-    );
-  }
-
-  /**
-   * Select active folder observable  TODO: what to do here?
-   */
-  public selectActiveFolder(): Observable<RouteFolder> {
-    return this.selectActiveEnvironment().pipe(
-      map((environment) =>
-        environment
-          ? environment.folders.find(
-            (folder) => folder.uuid === this.store$.value.activeFolderUUID
-          )
-          : null
-      )
-    );
-  }
-
-
 
   /**
    * Get active route response value

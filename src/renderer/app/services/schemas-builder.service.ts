@@ -1,4 +1,3 @@
-import { findReadVarNames } from '@angular/compiler/src/output/output_ast';
 import { Injectable } from '@angular/core';
 import {
   Environment,
@@ -8,18 +7,16 @@ import {
   ResponseRuleDefault,
   Route,
   RouteDefault,
-  RouteFolderDefault,
   RouteResponse,
   RouteResponseDefault
 } from '@mockoon/commons';
 import { cloneDeep } from 'lodash';
 import { DataService } from 'src/renderer/app/services/data.service';
 import { v4 as uuid } from 'uuid';
-import { RouteFolder } from '../../../../../commons/dist/cjs/models/routeFolder.model';
 
 @Injectable({ providedIn: 'root' })
 export class SchemasBuilderService {
-  constructor(private dataService: DataService) { }
+  constructor(private dataService: DataService) {}
 
   /**
    * Build a new environment or route response header
@@ -64,17 +61,6 @@ export class SchemasBuilderService {
     return {
       ...RouteDefault,
       responses: hasDefaultRouteResponse ? [this.buildRouteResponse()] : []
-    };
-  }
-
-  /**
-   * Build a new folder
-   */
-  public buildFolder(fName: string): RouteFolder {
-    return {
-      ...RouteFolderDefault,
-      uuid: uuid(),
-      folderName: fName
     };
   }
 

@@ -1,1 +1,1 @@
-export type DataSubject = 'environment' | 'route' | 'routeFolder';
+export type DataSubject = 'environment' | 'route';

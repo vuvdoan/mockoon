@@ -90,7 +90,7 @@ export class EnvironmentRoutesComponent implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private dialogsService: DialogsService,
     private environmentsService: EnvironmentsService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
@@ -371,12 +371,7 @@ default?
     )
       .pipe(
         tap((newProperty) => {
-          const activeFolder = this.store.getActiveFolder();
-          if (activeFolder) {
-            this.environmentsService.updateActiveRoute(newProperty, activeFolder.uuid);
-          } else {
-            this.environmentsService.updateActiveRoute(newProperty);
-          }
+          this.environmentsService.updateActiveRoute(newProperty);
         }),
         takeUntil(this.destroy$)
       )
@@ -423,7 +418,6 @@ default?
         takeUntil(this.destroy$)
       )
       .subscribe((activeRoute) => {
-        console.log('active route change detected in environment-routes.components ', activeRoute);
         this.activeRouteForm.patchValue(
           {
             documentation: activeRoute.documentation,

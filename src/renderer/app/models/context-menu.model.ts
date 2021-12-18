@@ -15,7 +15,6 @@ export type ContextMenuItemPayload = {
     | 'env_settings'
     | 'env_logs'
     | 'showInFolder'
-    | 'addNewRouteToFolder'
     | 'export'
     | 'toggle';
   subjectUUID: string;
