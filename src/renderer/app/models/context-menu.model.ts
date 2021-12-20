@@ -11,6 +11,7 @@ export type ContextMenuItemPayload = {
     | 'delete'
     | 'close'
     | 'duplicate'
+    | 'addNewRouteToFolder'
     | 'duplicateToEnv'
     | 'env_settings'
     | 'env_logs'

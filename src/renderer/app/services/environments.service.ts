@@ -64,6 +64,7 @@ import {
   setActiveEnvironmentLogTabAction,
   setActiveEnvironmentLogUUIDAction,
   setActiveRouteAction,
+  toogleActiveFolderAction,
   setActiveRouteResponseAction,
   setActiveTabAction,
   setActiveViewAction,
@@ -139,9 +140,9 @@ export class EnvironmentsService extends Logger {
                 map((environment) =>
                   environment
                     ? {
-                        environment,
-                        path: environmentItem.path
-                      }
+                      environment,
+                      path: environmentItem.path
+                    }
                     : null
                 )
               )
@@ -278,6 +279,24 @@ export class EnvironmentsService extends Logger {
       } else {
         this.store.update(setActiveRouteAction(routeUUIDOrDirection));
       }
+    }
+  }
+
+  /**
+   * Set active folder by UUID or navigation. 
+   * Folder can be active and have two different states: opened or closed
+   */
+  public toogleFolder(folderUIDOrDirection: string | ReducerDirectionType) {
+    const activeRouteUUID = this.store.get('activeRouteUUID');
+
+    // FIXME: why do we need ReducerDirectionType here?
+
+    if (activeRouteUUID && activeRouteUUID !== folderUIDOrDirection) {
+
+      // first set active folder
+      //this.store.update(setActiveFolderAction(folderUIDOrDirection));
+      // then toogle folder
+      this.store.update(toogleActiveFolderAction(folderUIDOrDirection));
     }
   }
 

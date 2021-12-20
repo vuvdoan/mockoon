@@ -53,8 +53,8 @@ export const environmentReducer = (
       if (action.environmentUUID !== state.activeEnvironmentUUID) {
         const activeEnvironment = action.environmentUUID
           ? state.environments.find(
-              (environment) => environment.uuid === action.environmentUUID
-            )
+            (environment) => environment.uuid === action.environmentUUID
+          )
           : state.environments[0];
 
         newState = {
@@ -67,7 +67,7 @@ export const environmentReducer = (
             : null,
           activeRouteResponseUUID:
             activeEnvironment.routes.length &&
-            activeEnvironment.routes[0].responses.length
+              activeEnvironment.routes[0].responses.length
               ? activeEnvironment.routes[0].responses[0].uuid
               : null,
           activeTab: 'RESPONSE',
@@ -112,7 +112,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           newEnvironment.routes.length &&
-          newEnvironment.routes[0].responses.length
+            newEnvironment.routes[0].responses.length
             ? newEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -242,6 +242,28 @@ export const environmentReducer = (
       break;
     }
 
+    case ActionTypes.TOOGLE_ACTIVE_FOLDER: {
+      const activeEnvironment = state.environments.find(
+        (environment) => environment.uuid === state.activeEnvironmentUUID);
+
+      if (!activeEnvironment) {
+        console.log('This should never happend');
+        newState = state;
+        break;
+      }
+
+      const selectedFolder = activeEnvironment.folders.find(
+        (folder) => folder.uuid === action.folderUUID
+      );
+      selectedFolder.isOpen = !selectedFolder.isOpen;
+
+
+      newState = {
+        ...state
+      };
+      break;
+    };
+
     case ActionTypes.NAVIGATE_ROUTES: {
       const activeEnvironment = state.environments.find(
         (environment) => environment.uuid === state.activeEnvironmentUUID
@@ -316,7 +338,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           activeEnvironment.routes.length &&
-          activeEnvironment.routes[0].responses.length
+            activeEnvironment.routes[0].responses.length
             ? activeEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -381,7 +403,7 @@ export const environmentReducer = (
               : null,
             activeRouteResponseUUID:
               newEnvironments[0].routes.length &&
-              newEnvironments[0].routes[0].responses.length
+                newEnvironments[0].routes[0].responses.length
                 ? newEnvironments[0].routes[0].responses[0].uuid
                 : null
           };
@@ -929,12 +951,12 @@ export const environmentReducer = (
     },
     duplicatedRoutes:
       action.type === ActionTypes.ADD_ROUTE ||
-      action.type === ActionTypes.REMOVE_ROUTE ||
-      action.type === ActionTypes.MOVE_ROUTES ||
-      action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
-      (action.type === ActionTypes.UPDATE_ROUTE &&
-        action.properties &&
-        (action.properties.endpoint || action.properties.method))
+        action.type === ActionTypes.REMOVE_ROUTE ||
+        action.type === ActionTypes.MOVE_ROUTES ||
+        action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
+        (action.type === ActionTypes.UPDATE_ROUTE &&
+          action.properties &&
+          (action.properties.endpoint || action.properties.method))
         ? updateDuplicatedRoutes(newState)
         : newState.duplicatedRoutes
   };

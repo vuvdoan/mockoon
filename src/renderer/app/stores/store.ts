@@ -3,6 +3,7 @@ import {
   Environment,
   Environments,
   Route,
+  RouteFolder,
   RouteResponse
 } from '@mockoon/commons';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -60,6 +61,7 @@ export type StoreType = {
   activeEnvironmentLogsTab: EnvironmentLogsTabsNameType;
   activeEnvironmentUUID: string;
   activeRouteUUID: string;
+  activeFolderUUID: string;
   activeRouteResponseUUID: string;
   environments: Environments;
   environmentsStatus: EnvironmentsStatuses;
@@ -84,6 +86,7 @@ export class Store {
     activeEnvironmentLogsUUID: {},
     activeEnvironmentUUID: null,
     activeRouteUUID: null,
+    activeFolderUUID: null,
     activeRouteResponseUUID: null,
     environments: [],
     environmentsStatus: {},
@@ -110,7 +113,7 @@ export class Store {
     routesFilter: ''
   });
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Select store element
@@ -199,11 +202,11 @@ export class Store {
         map((store) =>
           store.activeEnvironmentUUID
             ? store.environmentsLogs[store.activeEnvironmentUUID].find(
-                (environmentLog) =>
-                  environmentLog.routeUUID === store.activeRouteUUID &&
-                  environmentLog.routeResponseUUID ===
-                    store.activeRouteResponseUUID
-              )
+              (environmentLog) =>
+                environmentLog.routeUUID === store.activeRouteUUID &&
+                environmentLog.routeResponseUUID ===
+                store.activeRouteResponseUUID
+            )
             : null
         )
       );
@@ -217,8 +220,8 @@ export class Store {
       map((environment) =>
         environment
           ? environment.routes.find(
-              (route) => route.uuid === this.store$.value.activeRouteUUID
-            )
+            (route) => route.uuid === this.store$.value.activeRouteUUID
+          )
           : null
       )
     );
@@ -232,9 +235,9 @@ export class Store {
       map((route) =>
         route
           ? route.responses.find(
-              (routeResponse) =>
-                routeResponse.uuid === this.store$.value.activeRouteResponseUUID
-            )
+            (routeResponse) =>
+              routeResponse.uuid === this.store$.value.activeRouteResponseUUID
+          )
           : null
       )
     );
@@ -248,9 +251,9 @@ export class Store {
       map((route) =>
         route
           ? route.responses.findIndex(
-              (routeResponse) =>
-                routeResponse.uuid === this.store$.value.activeRouteResponseUUID
-            ) + 1
+            (routeResponse) =>
+              routeResponse.uuid === this.store$.value.activeRouteResponseUUID
+          ) + 1
           : null
       )
     );
@@ -331,6 +334,39 @@ export class Store {
 
     return foundRoute;
   }
+
+  /**
+   * Get active folder value
+   */
+  public getActiveFolder(): RouteFolder {
+    const activeEnvironment = this.store$.value.environments.find(
+      (environment) => environment.uuid === this.store$.value.activeEnvironmentUUID
+    );
+
+    if (!activeEnvironment || !activeEnvironment.folders) {
+      return null;
+    }
+
+    return activeEnvironment.folders.find(
+      (folder) => folder.uuid === this.store$.value.activeFolderUUID
+    );
+  }
+
+  /**
+   * Select active folder observable  TODO: what to do here?
+   */
+  public selectActiveFolder(): Observable<RouteFolder> {
+    return this.selectActiveEnvironment().pipe(
+      map((environment) =>
+        environment
+          ? environment.folders.find(
+            (folder) => folder.uuid === this.store$.value.activeFolderUUID
+          )
+          : null
+      )
+    );
+  }
+
 
   /**
    * Update the store using the reducer

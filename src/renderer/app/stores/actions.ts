@@ -18,6 +18,8 @@ import {
   UIStateProperties,
   ViewsNameType
 } from 'src/renderer/app/stores/store';
+import { RouteFolder } from '../../../../../commons/dist/cjs/models/routeFolder.model';
+import { RouteFolderProperties } from '../models/route-folder.model';
 
 export const enum ActionTypes {
   SET_ACTIVE_TAB,
@@ -32,10 +34,15 @@ export const enum ActionTypes {
   UPDATE_ENVIRONMENT_STATUS,
   UPDATE_ENVIRONMENT_ROUTE_FILTER,
   SET_ACTIVE_ROUTE,
+  SET_ACTIVE_FOLDER,
+  TOOGLE_ACTIVE_FOLDER,
+  UPDATE_ROUTE_FOLDER,
   NAVIGATE_ROUTES,
   MOVE_ROUTES,
   MOVE_ROUTE_RESPONSES,
   ADD_ROUTE,
+  ADD_ROUTE_TO_FOLDER,
+  ADD_FOLDER,
   REMOVE_ROUTE,
   REMOVE_ROUTE_RESPONSE,
   UPDATE_ROUTE,
@@ -194,7 +201,7 @@ export const updateEnvironmentAction = (properties: EnvironmentProperties) =>
  */
 export const updateEnvironmentStatusAction = (
   properties: EnvironmentStatusProperties,
-  environmentUUID
+  environmentUUID: string
 ) =>
   <const>{
     type: ActionTypes.UPDATE_ENVIRONMENT_STATUS,
@@ -217,11 +224,14 @@ export const updateEnvironmentroutesFilterAction = (routesFilter: string) =>
  * Set the active route (currently displayed)
  *
  * @param routeUUID - route UUID to set as active
+ * @param parentFolderUUID - the parent folder, if the route belong to this folder. 
+ *                    If no folderUUID is given, the route is on the top level
  */
-export const setActiveRouteAction = (routeUUID: string) =>
+export const setActiveRouteAction = (routeUUID: string, parentFolderUUID?: string) =>
   <const>{
     type: ActionTypes.SET_ACTIVE_ROUTE,
-    routeUUID
+    routeUUID,
+    parentFolderUUID
   };
 
 /**
@@ -248,6 +258,53 @@ export const addRouteAction = (route: Route, afterUUID?: string) =>
   };
 
 /**
+ * Add a route
+ *
+ * @param route - route to add
+ */
+export const addRouteToFolderAction = (route: Route, folderUUID: string) =>
+  <const>{
+    type: ActionTypes.ADD_ROUTE_TO_FOLDER,
+    route,
+    routeUUID: route.uuid,
+    folderUUID
+  };
+
+/**
+ * Add a folder
+ *
+ * @param route - route to add
+ */
+export const addFolderAction = (folder: RouteFolder) =>
+  <const>{
+    type: ActionTypes.ADD_FOLDER,
+    folder
+  };
+
+/**
+ * Set the active folder (currently displayed)
+ *
+ * @param folderUUID - route UUID to set as active
+ */
+export const setActiveFolderAction = (folderUUID: string) =>
+  <const>{
+    type: ActionTypes.SET_ACTIVE_FOLDER,
+    folderUUID
+  };
+
+/**
+ * Set the active folder (currently displayed)
+ *
+ * @param folderUUID - route UUID to set as active
+ */
+export const toogleActiveFolderAction = (folderUUID: string) =>
+  <const>{
+    type: ActionTypes.TOOGLE_ACTIVE_FOLDER,
+    folderUUID
+  };
+
+
+/**
  * Remove a route
  *
  * @param routeUUID - route UUID to remove
@@ -271,9 +328,21 @@ export const removeRouteResponseAction = () =>
  *
  * @param properties - properties to update
  */
-export const updateRouteAction = (properties: RouteProperties) =>
+export const updateRouteAction = (properties: RouteProperties, parentFolderUUID?: string) =>
   <const>{
     type: ActionTypes.UPDATE_ROUTE,
+    folder: parentFolderUUID,
+    properties
+  };
+
+/**
+ * Update a folder
+ *
+ * @param properties - properties to update
+ */
+export const updateRouteFolderAction = (properties: RouteFolderProperties) =>
+  <const>{
+    type: ActionTypes.UPDATE_ROUTE_FOLDER,
     properties
   };
 
@@ -452,8 +521,13 @@ export type Actions =
   | ReturnType<typeof updateEnvironmentStatusAction>
   | ReturnType<typeof updateEnvironmentroutesFilterAction>
   | ReturnType<typeof setActiveRouteAction>
+  | ReturnType<typeof setActiveFolderAction>
+  | ReturnType<typeof toogleActiveFolderAction>
   | ReturnType<typeof navigateRoutesAction>
   | ReturnType<typeof addRouteAction>
+  | ReturnType<typeof addRouteToFolderAction>
+  | ReturnType<typeof addFolderAction>
+  | ReturnType<typeof updateRouteFolderAction>
   | ReturnType<typeof removeRouteAction>
   | ReturnType<typeof removeRouteResponseAction>
   | ReturnType<typeof updateRouteAction>

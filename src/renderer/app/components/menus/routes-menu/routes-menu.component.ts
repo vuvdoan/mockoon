@@ -9,16 +9,18 @@ import {
   ViewChild
 } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
-import { Environment, Route } from '@mockoon/commons';
-import { combineLatest, from, Observable, Subscription } from 'rxjs';
+import { Environment, Route, RouteFolder } from '@mockoon/commons';
+import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
 import {
+  concatMap,
   debounceTime,
   distinctUntilChanged,
   filter,
   map,
+  mergeMap,
   tap
 } from 'rxjs/operators';
-import { RoutesContextMenu } from 'src/renderer/app/components/context-menu/context-menus';
+import { RouteFolderContextMenu, RoutesContextMenu } from 'src/renderer/app/components/context-menu/context-menus';
 import { Config } from 'src/renderer/app/config';
 import { MainAPI } from 'src/renderer/app/constants/common.constants';
 import { FocusableInputs } from 'src/renderer/app/enums/ui.enum';
@@ -34,22 +36,38 @@ import {
 } from 'src/renderer/app/stores/store';
 import { Settings } from 'src/shared/models/settings.model';
 
+export type VFolder = {
+  children: VFolder[];
+  routes: Route[];
+  id: string;
+  name: string;
+};
+
 @Component({
   selector: 'app-routes-menu',
   templateUrl: './routes-menu.component.html',
   styleUrls: ['./routes-menu.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
+
+
 export class RoutesMenuComponent implements OnInit, OnDestroy {
   @ViewChild('routesMenu') private routesMenu: ElementRef;
   public settings$: Observable<Settings>;
   public activeEnvironment$: Observable<Environment>;
   public routeList$: Observable<Route[]>;
   public activeRoute$: Observable<Route>;
+  public activeFolder$: Observable<RouteFolder>;
   public environmentsStatus$: Observable<EnvironmentsStatuses>;
   public duplicatedRoutes$: Observable<DuplicatedRoutesTypes>;
   public routesFilter$: Observable<string>;
   public routesFilter: FormControl;
+  public vFolder$ = new BehaviorSubject<VFolder>({ // NOTE: dont forget to re-initialize when each time environment changes
+    name: 'root',
+    id: 'root',
+    children: [], //empty children when initialized first time
+    routes: [] //empty routes when initialized first time
+  });
   public dragIsDisabled = false;
   public focusableInputs = FocusableInputs;
   public os$: Observable<string>;
@@ -62,7 +80,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     private eventsService: EventsService,
     private uiService: UIService,
     private formBuilder: FormBuilder
-  ) {}
+  ) { }
 
   @HostListener('keydown', ['$event'])
   public escapeFilterInput(event: KeyboardEvent) {
@@ -76,7 +94,19 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     this.routesFilter = this.formBuilder.control('');
 
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
+    /*
+    this.activeEnvironment$.subscribe((environment) => {
+      console.log('re-initialize vFolder')
+      this.vFolder$.next({ // re-initialize everytime active environment changes
+        name: 'root',
+        id: 'root',
+        routes: [],
+        children: []
+      });
+    });
+    */
     this.activeRoute$ = this.store.selectActiveRoute();
+    this.activeFolder$ = this.store.selectActiveFolder();
     this.duplicatedRoutes$ = this.store.select('duplicatedRoutes');
     this.environmentsStatus$ = this.store.select('environmentsStatus');
     this.settings$ = this.store.select('settings');
@@ -103,10 +133,20 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
 
         return routes.filter(
           (route) =>
-            route.endpoint.includes(search) ||
-            route.documentation.includes(search)
+            route.endpoint.includes(search) || route.documentation.includes(search)
+
         );
       })
+    );
+
+    // everytime the routelist changes, we do re-calculate the virtual folder structure
+    this.routeList$.subscribe(
+      (routes) => {
+        console.log('routeList changed: ', routes);
+        if (routes && routes.length > 0) {
+          this.vFolder$.next(this.handleRouteInVFolder(routes));
+        }
+      }
     );
 
     this.uiService.scrollRoutesMenu.subscribe((scrollDirection) => {
@@ -126,6 +166,8 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.routesFilterSubscription.unsubscribe();
   }
+
+
 
   /**
    * Callback called when reordering routes
@@ -159,16 +201,34 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Select a folder by UUID, or the first folder if no UUID is present
+   */
+  public selectFolder(folderUUID: string) {
+    this.environmentsService.toogleFolder(folderUUID);
+  }
+
+  public isFolderOpen(folderId: string) {
+    const foundFolder = this.store.getActiveEnvironment().folders.find((folder) => folder.uuid === folderId);
+    if (foundFolder) {
+      return foundFolder.isOpen;
+    }
+
+    return false;
+  }
+
+
+  /**
    * Show and position the context menu
    *
    * @param event - click event
    */
-  public openContextMenu(routeUUID: string, event: MouseEvent) {
+  public openContextMenu(subjectUUID: string, event: MouseEvent, isFolder: boolean = false) {
     // if right click display context menu
     if (event && event.button === 2) {
+      const env = this.store.get('environments');
       const menu: ContextMenuEvent = {
         event,
-        items: RoutesContextMenu(routeUUID, this.store.get('environments'))
+        items: isFolder ? RouteFolderContextMenu(subjectUUID, env) : RoutesContextMenu(subjectUUID, env)
       };
 
       this.eventsService.contextMenuEvents.next(menu);
@@ -180,5 +240,84 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
    */
   public clearFilter() {
     this.store.update(updateEnvironmentroutesFilterAction(''));
+  }
+
+  /**
+   * initialize vFolder. 
+   * Also do this everytime the environment changes, or the routelist changes
+   */
+  private initVFolder(): VFolder {
+    return {
+      name: 'root',
+      id: 'root',
+      children: [], //empty children when initialized first time
+      routes: [] //empty routes when initialized first time
+    };
+  }
+
+
+  /** 
+   * Can we do it in a more declarative way???
+   */
+  private handleRouteInVFolder(routesFromStore: Route[]): VFolder {
+    const rootFolder = this.initVFolder(); // attention: since everytime a complete routeList is being emitted, we also need to re-initialize the vFolder
+
+    routesFromStore.forEach((storeRoute) => {
+      if (storeRoute.parentFolder) {
+        // NOTE: we need to always parse the routeList and update the vFolder, because there are change to one of the route
+        const currentFolder = this.getFolderByPath(storeRoute.parentFolder, rootFolder);
+        // now we add the route to the current folder, if not already existing
+        let vRoute = currentFolder.routes.find((route) => route.uuid === storeRoute.uuid);
+        if (!vRoute) {
+          currentFolder.routes.push(storeRoute);
+        } else {
+          vRoute = storeRoute; // route already exists in the current folder. do nothing here
+        }
+
+      } else {
+        rootFolder.routes.push(storeRoute);
+      }
+
+      return rootFolder;
+    });
+
+    return rootFolder;
+  }
+
+  /**
+   * Get the vFolder from one given path. Starting from the root vFolder
+   */
+  private getFolderByPath(routeFolderPath: string, currentFolder: VFolder): VFolder {
+    const routePaths = routeFolderPath.split('/');
+    // we don't use foreach here because I want to be able to break the loop as needed 
+    for (const path of routePaths) {
+      if (currentFolder.id === path) {
+        continue;
+      }
+      const tmpFolder = currentFolder.children.find((folder) => folder.id === path);
+      if (tmpFolder) {
+        currentFolder = tmpFolder;
+        continue;
+      } else { // folder doesn't exist. add new one folder and continue
+        const envFolder = this.store.getActiveEnvironment()
+          .folders.find((folder) => folder.uuid = path);
+        if (!envFolder) {
+          // this should never happend.
+          console.error('Folder not found in environment: ', path);
+
+          return null;
+        }
+        const newFolder: VFolder = {
+          id: envFolder.uuid,
+          name: envFolder.folderName,
+          children: [],
+          routes: []
+        };
+        currentFolder.children.push(newFolder);
+        currentFolder = newFolder;
+      }
+    }
+
+    return currentFolder;
   }
 }
