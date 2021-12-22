@@ -88,6 +88,14 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
     label: 'Routes',
     submenu: [
       {
+        id: 'NEW_FOLDER',
+        label: 'Add new folder',
+        accelerator: 'Shift+CmdOrCtrl+F',
+        click: () => {
+          mainWindow.webContents.send('APP_MENU', 'NEW_FOLDER');
+        }
+      },
+      {
         id: 'NEW_ROUTE',
         label: 'Add new route',
         accelerator: 'Shift+CmdOrCtrl+R',

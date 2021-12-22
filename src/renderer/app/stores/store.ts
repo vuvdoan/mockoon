@@ -359,7 +359,7 @@ export class Store {
     return this.selectActiveEnvironment().pipe(
       map((environment) =>
         environment
-          ? environment.folders.find(
+          ? environment.folders?.find(
             (folder) => folder.uuid === this.store$.value.activeFolderUUID
           )
           : null

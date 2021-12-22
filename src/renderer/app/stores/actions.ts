@@ -543,4 +543,5 @@ export type Actions =
   | ReturnType<typeof updateSettingsAction>
   | ReturnType<typeof startRouteDuplicationToAnotherEnvironmentAction>
   | ReturnType<typeof finalizeRouteDuplicationToAnotherEnvironmentAction>
-  | ReturnType<typeof duplicateRouteToAnotherEnvironmentAction>;
+  | ReturnType<typeof duplicateRouteToAnotherEnvironmentAction>
+  | ReturnType<typeof addFolderAction>;

@@ -18,7 +18,7 @@ export class ApiService {
     private importExportService: ImportExportService,
     private store: Store,
     private zone: NgZone
-  ) {}
+  ) { }
 
   public init(
     changelogModal: ChangelogModalComponent,
@@ -34,6 +34,9 @@ export class ApiService {
     MainAPI.receive('APP_MENU', (action) => {
       this.zone.run(async () => {
         switch (action) {
+          case 'NEW_FOLDER':
+            this.environmentsService.addFolder();
+            break;
           case 'NEW_ENVIRONMENT':
             this.environmentsService.addEnvironment().subscribe();
             break;

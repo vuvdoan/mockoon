@@ -6,6 +6,8 @@ import {
   ResponseRule,
   ResponseRuleDefault,
   Route,
+  RouteFolderDefault,
+  RouteFolder,
   RouteDefault,
   RouteResponse,
   RouteResponseDefault
@@ -16,7 +18,7 @@ import { v4 as uuid } from 'uuid';
 
 @Injectable({ providedIn: 'root' })
 export class SchemasBuilderService {
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService) { }
 
   /**
    * Build a new environment or route response header
@@ -61,6 +63,17 @@ export class SchemasBuilderService {
     return {
       ...RouteDefault,
       responses: hasDefaultRouteResponse ? [this.buildRouteResponse()] : []
+    };
+  }
+
+  /**
+   * Build a new folder
+   */
+  public buildFolder(fName: string): RouteFolder {
+    return {
+      ...RouteFolderDefault,
+      uuid: uuid(),
+      folderName: fName
     };
   }
 

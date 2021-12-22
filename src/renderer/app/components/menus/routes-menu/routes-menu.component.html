@@ -81,13 +81,13 @@
                   <span> 
                     <app-svg icon="folder_open"></app-svg>
                   </span>
-                  {{ folder.name }} 
+                {{ folder.name }} - {{folder.isOpen? 'opened': 'closed'}}
                 </a>
               </div>
 
               <!-- Routes in folder -->
               <div 
-                *ngIf = "isFolderOpen(folder.id)"
+                *ngIf = "folder.isOpen"
                 id="{{folder.name}}-routes" 
               >
                 <ul>

@@ -252,14 +252,22 @@ export const environmentReducer = (
         break;
       }
 
-      const selectedFolder = activeEnvironment.folders.find(
-        (folder) => folder.uuid === action.folderUUID
-      );
-      selectedFolder.isOpen = !selectedFolder.isOpen;
 
 
       newState = {
-        ...state
+        ...state,
+        environments: state.environments.map((env) => {
+          if (env.uuid === activeEnvironment.uuid) {
+            env.folders = env.folders.map((folder) => {
+              if (folder.uuid === action.folderUUID) {
+                folder.isOpen = !folder.isOpen;
+              }
+              return folder;
+            })
+          }
+          env.routes = [...env.routes];
+          return env;
+        })
       };
       break;
     };
@@ -580,6 +588,32 @@ export const environmentReducer = (
         activeRouteResponseUUID: newRouteResponses[0].uuid,
         environments: newEnvironments
       };
+      break;
+    }
+
+    case ActionTypes.ADD_FOLDER: {
+      if (state.environments.length > 0) {
+        const newFolder = action.folder;
+        newState = {
+          ...state,
+          environments: state.environments.map((environment) => {
+            if (environment.uuid === state.activeEnvironmentUUID) {
+              const folders = environment.folders ? [...environment.folders] : [];
+              folders.push(newFolder);
+
+              return {
+                ...environment,
+                folders
+              };
+            }
+
+            return environment;
+          })
+        };
+        break;
+      }
+
+      newState = state;
       break;
     }
 

@@ -41,6 +41,7 @@ export type VFolder = {
   routes: Route[];
   id: string;
   name: string;
+  isOpen: boolean;
 };
 
 @Component({
@@ -66,7 +67,8 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     name: 'root',
     id: 'root',
     children: [], //empty children when initialized first time
-    routes: [] //empty routes when initialized first time
+    routes: [], //empty routes when initialized first time
+    isOpen: true
   });
   public dragIsDisabled = false;
   public focusableInputs = FocusableInputs;
@@ -92,19 +94,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.os$ = from(MainAPI.invoke('APP_GET_OS'));
     this.routesFilter = this.formBuilder.control('');
-
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
-    /*
-    this.activeEnvironment$.subscribe((environment) => {
-      console.log('re-initialize vFolder')
-      this.vFolder$.next({ // re-initialize everytime active environment changes
-        name: 'root',
-        id: 'root',
-        routes: [],
-        children: []
-      });
-    });
-    */
     this.activeRoute$ = this.store.selectActiveRoute();
     this.activeFolder$ = this.store.selectActiveFolder();
     this.duplicatedRoutes$ = this.store.select('duplicatedRoutes');
@@ -142,7 +132,6 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     // everytime the routelist changes, we do re-calculate the virtual folder structure
     this.routeList$.subscribe(
       (routes) => {
-        console.log('routeList changed: ', routes);
         if (routes && routes.length > 0) {
           this.vFolder$.next(this.handleRouteInVFolder(routes));
         }
@@ -208,7 +197,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   }
 
   public isFolderOpen(folderId: string) {
-    const foundFolder = this.store.getActiveEnvironment().folders.find((folder) => folder.uuid === folderId);
+    const foundFolder = this.store.getActiveEnvironment().folders?.find((folder) => folder.uuid === folderId);
     if (foundFolder) {
       return foundFolder.isOpen;
     }
@@ -251,7 +240,8 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
       name: 'root',
       id: 'root',
       children: [], //empty children when initialized first time
-      routes: [] //empty routes when initialized first time
+      routes: [], //empty routes when initialized first time
+      isOpen: true,
     };
   }
 
@@ -262,12 +252,12 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   private handleRouteInVFolder(routesFromStore: Route[]): VFolder {
     const rootFolder = this.initVFolder(); // attention: since everytime a complete routeList is being emitted, we also need to re-initialize the vFolder
 
-    routesFromStore.forEach((storeRoute) => {
+    for (let storeRoute of routesFromStore) {
       if (storeRoute.parentFolder) {
         // NOTE: we need to always parse the routeList and update the vFolder, because there are change to one of the route
-        const currentFolder = this.getFolderByPath(storeRoute.parentFolder, rootFolder);
+        const currentFolder: VFolder = this.getFolderByPath(storeRoute.parentFolder, { ...rootFolder }); // do not pass the rootfolder object directly to this function, since it could damage the value of the reference object
         // now we add the route to the current folder, if not already existing
-        let vRoute = currentFolder.routes.find((route) => route.uuid === storeRoute.uuid);
+        let vRoute: Route = currentFolder.routes.find((route) => route.uuid === storeRoute.uuid);
         if (!vRoute) {
           currentFolder.routes.push(storeRoute);
         } else {
@@ -277,9 +267,22 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
       } else {
         rootFolder.routes.push(storeRoute);
       }
+    }
 
-      return rootFolder;
-    });
+    // after routes are assigned into each folder, we render all empty folders
+    this.store.getActiveEnvironment().folders?.forEach((folder) => {
+      if (!this.store.getActiveEnvironment().routes.find((route) =>
+        route.parentFolder?.includes(folder.uuid))) {
+        rootFolder.children.push({
+          id: folder.uuid,
+          name: folder.folderName,
+          children: [],
+          routes: [],
+          isOpen: folder.isOpen
+
+        });
+      }
+    })
 
     return rootFolder;
   }
@@ -289,30 +292,41 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
    */
   private getFolderByPath(routeFolderPath: string, currentFolder: VFolder): VFolder {
     const routePaths = routeFolderPath.split('/');
+    const environmentFolders:RouteFolder[] =  [...this.store.getActiveEnvironment().folders]; // we do this, because the reference might changed during processing
+    if (!environmentFolders) {
+      console.log('No environment route folder found');
+      return currentFolder;
+    }
+
     // we don't use foreach here because I want to be able to break the loop as needed 
     for (const path of routePaths) {
       if (currentFolder.id === path) {
         continue;
       }
-      const tmpFolder = currentFolder.children.find((folder) => folder.id === path);
+
+      const tmpFolder: VFolder = currentFolder.children.find((folder) => folder.id === path);
       if (tmpFolder) {
         currentFolder = tmpFolder;
         continue;
-      } else { // folder doesn't exist. add new one folder and continue
-        const envFolder = this.store.getActiveEnvironment()
-          .folders.find((folder) => folder.uuid = path);
+      } else { // folder doesn't exist in the current directory. add new one folder and continue
+        const envFolder: RouteFolder = environmentFolders.find((folder) => folder.uuid === path);
+        console.log('found folderfor path: ', path)
         if (!envFolder) {
           // this should never happend.
           console.error('Folder not found in environment: ', path);
 
           return null;
         }
+
+        console.log('Found RouteFolder', envFolder);
         const newFolder: VFolder = {
           id: envFolder.uuid,
           name: envFolder.folderName,
           children: [],
-          routes: []
+          routes: [],
+          isOpen: envFolder.isOpen
         };
+        console.log('Create new VFolder from RouteFolder and added it to my virtuell folder structur', newFolder.name, ' from ', envFolder.folderName);
         currentFolder.children.push(newFolder);
         currentFolder = newFolder;
       }

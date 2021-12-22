@@ -73,7 +73,9 @@ import {
   updateRouteAction,
   updateRouteResponseAction,
   updateSettingsAction,
-  updateUIStateAction
+  updateUIStateAction,
+  addFolderAction
+
 } from 'src/renderer/app/stores/actions';
 import { ReducerDirectionType } from 'src/renderer/app/stores/reducer';
 import {
@@ -585,6 +587,21 @@ export class EnvironmentsService extends Logger {
           enabled: !selectedRoute.enabled
         })
       );
+    }
+  }
+
+
+  /**
+   * Add a new folder and save it in the store
+   */
+  public addFolder() {
+    if (this.store.getActiveEnvironment()) {
+      this.store.update(
+        addFolderAction(this.schemasBuilderService.buildFolder('New Folder'))
+      );
+      //this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
+      this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
+      this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
     }
   }
 
