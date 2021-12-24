@@ -74,7 +74,8 @@ import {
   updateRouteResponseAction,
   updateSettingsAction,
   updateUIStateAction,
-  addFolderAction
+  addFolderAction,
+  addRouteToFolderAction
 
 } from 'src/renderer/app/stores/actions';
 import { ReducerDirectionType } from 'src/renderer/app/stores/reducer';
@@ -481,11 +482,10 @@ export class EnvironmentsService extends Logger {
   /**
    * Add a new route and save it in the store
    */
-  public addRoute() {
+  public addRoute(route?: Route) {
     if (this.store.getActiveEnvironment()) {
-      this.store.update(
-        addRouteAction(this.schemasBuilderService.buildRoute())
-      );
+      route = route || this.schemasBuilderService.buildRoute();
+      this.store.update(addRouteAction(route));
       this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
       this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
       this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
@@ -603,6 +603,15 @@ export class EnvironmentsService extends Logger {
       this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
       this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
     }
+  }
+
+  /**
+   * Add new route to a selected folder
+   */
+  public addNewRouteToFolder(folderUuid: string) {
+    const newRoute = this.schemasBuilderService.buildRoute();
+    newRoute.parentFolder = folderUuid;
+    this.addRoute(newRoute);
   }
 
   /**
