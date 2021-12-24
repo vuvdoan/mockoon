@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { Environment, Route, RouteFolder } from '@mockoon/commons';
+import { every } from 'lodash';
 import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
 import {
   concatMap,
@@ -161,11 +162,18 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
    *
    * @param event
    */
-  public reorderRoutes(event: CdkDragDrop<string[]>) {
+  public reorderRoutes(event: CdkDragDrop<VFolder, VFolder, string[]>, isGroupedByFolder?: boolean) {
+    if (isGroupedByFolder) {
+      // TODO: finish me!!!
+      // recalculate the index of item to be moved. because the index 
+      // starts with 0 with every container
+    }
     this.environmentsService.moveMenuItem(
       'routes',
       event.previousIndex,
-      event.currentIndex
+      event.currentIndex,
+      event.previousContainer.data,
+      event.container.data
     );
   }
 

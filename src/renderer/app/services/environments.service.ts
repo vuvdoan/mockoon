@@ -86,6 +86,7 @@ import {
   ViewsNameType
 } from 'src/renderer/app/stores/store';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
+import { VFolder } from '../components/menus/routes-menu/routes-menu.component';
 
 @Injectable({
   providedIn: 'root'
@@ -750,7 +751,9 @@ export class EnvironmentsService extends Logger {
   public moveMenuItem(
     type: DraggableContainerNames,
     sourceIndex: number,
-    targetIndex: number
+    targetIndex: number,
+    sourceContainer?: VFolder,
+    targetContainer?: VFolder
   ) {
     const storeActions = {
       routes: moveRoutesAction,
@@ -758,7 +761,13 @@ export class EnvironmentsService extends Logger {
       routeResponses: moveRouteResponsesAction
     };
 
-    this.store.update(storeActions[type]({ sourceIndex, targetIndex }));
+    this.store.update(storeActions[type](
+      {
+        sourceIndex,
+        targetIndex,
+        sourceContainer,
+        targetContainer
+      }));
   }
 
   /**

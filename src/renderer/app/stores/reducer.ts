@@ -1,4 +1,4 @@
-import { Environment, Route, RouteResponse } from '@mockoon/commons';
+import { Environment, Route, RouteFolder, RouteResponse } from '@mockoon/commons';
 import {
   ArrayContainsObjectKey,
   MoveArrayItem
@@ -11,9 +11,15 @@ import {
 } from 'src/renderer/app/stores/reducer-utils';
 import { EnvironmentsStatuses, StoreType } from 'src/renderer/app/stores/store';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
+import { VFolder } from '../components/menus/routes-menu/routes-menu.component';
 
 export type ReducerDirectionType = 'next' | 'previous';
-export type ReducerIndexes = { sourceIndex: number; targetIndex: number };
+export type ReducerIndexes = {
+  sourceIndex: number;
+  targetIndex: number;
+  sourceContainer?: VFolder;
+  targetContainer?: VFolder;
+};
 
 export const environmentReducer = (
   state: StoreType,
@@ -155,6 +161,50 @@ export const environmentReducer = (
 
       const newEnvironments = state.environments.map((environment) => {
         if (environment.uuid === state.activeEnvironmentUUID) {
+          // TODO: moving within the same folder is already implemented.
+          // but we need also move array item between folers
+          if (action.indexes.sourceContainer && action.indexes.targetContainer) {
+            const sourceFolder = action.indexes.sourceContainer;
+            const targetFolder = action.indexes.targetContainer;
+
+            // first we need to find the index of sources and targets in the environment routes
+            const sourceIndex = environment.routes.findIndex((route) => 
+              route.uuid ===  sourceFolder.routes[action.indexes.sourceIndex].uuid);
+
+            const targetIndex = environment.routes.findIndex((route) => 
+              route.uuid ===  sourceFolder.routes[action.indexes.targetIndex].uuid);
+
+            // reordering routes within one folder
+            if (sourceFolder.id === targetFolder.id) {
+              return {
+                ...environment,
+                routes: MoveArrayItem<Route>(
+                  environment.routes,
+                  sourceIndex,
+                  targetIndex
+                )
+              }
+
+            } else {
+              // moving routes from one folder to another. 
+              // how is the re-ordering logic here? 
+              // since moving to folder only mean updating the parentFolder property of one route,
+              // the route is not physically being moved. So it will still have the same 
+              // order as origin when processing environments
+
+              // we only need the target folder
+              const routeToMove = sourceFolder.routes[action.indexes.sourceIndex];
+              console.log('Move route ' + routeToMove.endpoint,
+                ' from ', sourceFolder.name, ' to ' + targetFolder.name);
+              routeToMove.parentFolder = targetFolder.id;
+
+              return {
+                ...environment
+              }
+            }
+          }
+
+          // this is the origin source code. We keep this as default case
           return {
             ...environment,
             routes: MoveArrayItem<Route>(
