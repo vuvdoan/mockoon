@@ -1,4 +1,4 @@
-import { Environment, Route, RouteResponse } from '@mockoon/commons';
+import { Environment, Route, RouteFolder, RouteResponse } from '@mockoon/commons';
 import { EnvironmentLog } from 'src/renderer/app/models/environment-logs.model';
 import { EnvironmentProperties } from 'src/renderer/app/models/environment.model';
 import {
@@ -18,7 +18,6 @@ import {
   UIStateProperties,
   ViewsNameType
 } from 'src/renderer/app/stores/store';
-import { RouteFolder } from '../../../../../commons/dist/cjs/models/routeFolder.model';
 import { RouteFolderProperties } from '../models/route-folder.model';
 
 export const enum ActionTypes {
