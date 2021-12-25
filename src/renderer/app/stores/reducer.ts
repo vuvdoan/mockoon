@@ -10,7 +10,6 @@ import {
   updateDuplicatedRoutes
 } from 'src/renderer/app/stores/reducer-utils';
 import { EnvironmentsStatuses, StoreType } from 'src/renderer/app/stores/store';
-import { environment } from 'src/renderer/environments/environment';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
 import { VFolder } from '../components/menus/routes-menu/routes-menu.component';
 
@@ -184,8 +183,7 @@ export const environmentReducer = (
                   sourceIndex,
                   targetIndex
                 )
-              }
-
+              };
             } else {
               // moving routes from one folder to another. 
               // how is the re-ordering logic here? 
@@ -201,7 +199,7 @@ export const environmentReducer = (
 
               return {
                 ...environment
-              }
+              };
             }
           }
 
@@ -335,7 +333,7 @@ export const environmentReducer = (
       // validate selected folder
       const activeFolder = activeEnvironment.folders.find(
         (folder) => folder.uuid === action.folderUUID
-      )
+      );
 
       if (activeFolder == null) {
         // this should never happend. 
@@ -353,10 +351,12 @@ export const environmentReducer = (
               if (folder.uuid === action.folderUUID) {
                 folder.isOpen = !folder.isOpen;
               }
+
               return folder;
-            })
+            });
           }
           env.routes = [...env.routes];
+
           return env;
         }),
         activeTab: 'RESPONSE',

@@ -267,7 +267,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   private handleRouteInVFolder(routesFromStore: Route[]): VFolder {
     const rootFolder = this.initVFolder(); // attention: since everytime a complete routeList is being emitted, we also need to re-initialize the vFolder
 
-    for (let storeRoute of routesFromStore) {
+    for (const storeRoute of routesFromStore) {
       if (storeRoute.parentFolder) {
         // NOTE: we need to always parse the routeList and update the vFolder, because there are change to one of the route
         const currentFolder: VFolder = this.getFolderByPath(storeRoute.parentFolder, { ...rootFolder }); // do not pass the rootfolder object directly to this function, since it could damage the value of the reference object
@@ -296,7 +296,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
 
         });
       }
-    })
+    });
 
     return rootFolder;
   }
@@ -309,6 +309,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     const environmentFolders: RouteFolder[] = [...this.store.getActiveEnvironment().folders]; // we do this, because the reference might changed during processing
     if (!environmentFolders) {
       console.log('No environment route folder found');
+
       return currentFolder;
     }
 

@@ -37,7 +37,7 @@ import {
 } from 'src/renderer/app/models/route.model';
 import {
   RouteFolderProperties
-} from 'src/renderer/app/models/route-folder.model'
+} from 'src/renderer/app/models/route-folder.model';
 import {
   DraggableContainerNames,
   ScrollDirection
@@ -682,6 +682,9 @@ export class EnvironmentsService extends Logger {
   }
 
 
+  /**
+   * Set selected folder as active
+   */
   public setActiveFolder(folderUuid: string) {
     this.store.update(setActiveFolderAction(folderUuid));
   }
