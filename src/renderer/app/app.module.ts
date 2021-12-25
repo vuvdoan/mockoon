@@ -32,6 +32,7 @@ import { EnvironmentHeadersComponent } from 'src/renderer/app/components/environ
 import { EnvironmentLogsComponent } from 'src/renderer/app/components/environment-logs/environment-logs.component';
 import { EnvironmentProxyComponent } from 'src/renderer/app/components/environment-proxy/environment-proxy.component';
 import { EnvironmentRoutesComponent } from 'src/renderer/app/components/environment-routes/environment-routes.component';
+import { EnvironmentFoldersComponent } from 'src/renderer/app/components/environment-folders/environment-folders.component';
 import { EnvironmentSettingsComponent } from 'src/renderer/app/components/environment-settings/environment-settings.component';
 import { FooterComponent } from 'src/renderer/app/components/footer/footer.component';
 import { HeaderComponent } from 'src/renderer/app/components/header/header.component';
@@ -83,6 +84,7 @@ import { AppComponent } from './app.component';
     EnvironmentHeadersComponent,
     EnvironmentSettingsComponent,
     EnvironmentRoutesComponent,
+    EnvironmentFoldersComponent,
     HeadersListComponent,
     BannerComponent,
     RouteResponseRulesComponent,
@@ -160,4 +162,4 @@ import { AppComponent } from './app.component';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

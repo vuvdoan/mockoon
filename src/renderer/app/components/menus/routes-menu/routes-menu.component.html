@@ -74,6 +74,7 @@
                     [ngClass]="{ 
                       active: (activeFolder$ | async)?.uuid === folder.id
                     }"
+                    (dblclick)="toggleFolder(folder.id)"
                     (click)="selectFolder(folder.id)"
                     (contextmenu)="openContextMenu(folder.id, $event, true)"
                   >

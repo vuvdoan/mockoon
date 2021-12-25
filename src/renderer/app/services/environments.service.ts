@@ -36,6 +36,9 @@ import {
   RouteResponseProperties
 } from 'src/renderer/app/models/route.model';
 import {
+  RouteFolderProperties
+} from 'src/renderer/app/models/route-folder.model'
+import {
   DraggableContainerNames,
   ScrollDirection
 } from 'src/renderer/app/models/ui.model';
@@ -75,7 +78,9 @@ import {
   updateSettingsAction,
   updateUIStateAction,
   addFolderAction,
-  addRouteToFolderAction
+  addRouteToFolderAction,
+  updateRouteFolderAction,
+  setActiveFolderAction
 
 } from 'src/renderer/app/stores/actions';
 import { ReducerDirectionType } from 'src/renderer/app/stores/reducer';
@@ -674,6 +679,18 @@ export class EnvironmentsService extends Logger {
    */
   public updateActiveRouteResponse(properties: RouteResponseProperties) {
     this.store.update(updateRouteResponseAction(properties));
+  }
+
+
+  public setActiveFolder(folderUuid: string) {
+    this.store.update(setActiveFolderAction(folderUuid));
+  }
+
+  /**
+   * Update the active folder
+   */
+  public updateActiveFolder(properties: RouteFolderProperties) {
+    this.store.update(updateRouteFolderAction(properties));
   }
 
   /**

@@ -21,6 +21,7 @@ import { Settings } from 'src/shared/models/settings.model';
 
 export type ViewsNameType =
   | 'ENV_ROUTES'
+  | 'ENV_FOLDERS'
   | 'ENV_HEADERS'
   | 'ENV_LOGS'
   | 'ENV_PROXY'

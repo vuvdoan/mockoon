@@ -195,9 +195,16 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Select a folder by UUID, or the first folder if no UUID is present
+   * Select a folder by UUID and keep the folder status 
    */
   public selectFolder(folderUUID: string) {
+    this.environmentsService.setActiveFolder(folderUUID);
+  }
+
+  /**
+   * When double click, we toggle folder
+   */
+  public toggleFolder(folderUUID: string) {
     this.environmentsService.toogleFolder(folderUUID);
   }
 
