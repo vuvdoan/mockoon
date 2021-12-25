@@ -312,7 +312,7 @@ export const environmentReducer = (
           ...state,
           activeFolderUUID: action.folderUUID,
           activeTab: 'RESPONSE',
-          activeView: 'ENV_ROUTES',
+          activeView: 'ENV_FOLDERS',
           environments: state.environments
         };
         break;
