@@ -53,15 +53,11 @@
         <div> <!--first we render folders and theirs route -->
           <li
             class="nav-item"
+            id = "{{folder.id}}"
             *ngFor="let folder of rootFolder.children"
-            cdkDrag
             cdkDropList
             [cdkDropListData]="folder"
             (cdkDropListDropped)="reorderRoutes($event, true)"
-            id = "{{folder.id}}"
-            cdkDragLockAxis="y"
-            cdkDragBoundary=".routes-menu .nav.menu-list"
-            [cdkDragDisabled]="true"
           >
               <div
                 *ngIf="settings$ | async as settings"
@@ -82,9 +78,9 @@
                     (contextmenu)="openContextMenu(folder.id, $event, true)"
                   >
                     <span> 
-                      <app-svg icon="folder_open"></app-svg>
+                    <app-svg icon="{{isFolderOpen(folder.id)? 'folder_open': 'folder'}}" ></app-svg>
                     </span>
-                  {{ folder.name }} - {{isFolderOpen(folder.id)? 'opened': 'closed'}}
+                  {{ folder.name }}
                   </a>
                 </div>
 

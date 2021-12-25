@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
 import { Environment, Route, RouteFolder } from '@mockoon/commons';
-import { every } from 'lodash';
 import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
 import {
   concatMap,
