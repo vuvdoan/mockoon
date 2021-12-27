@@ -122,5 +122,15 @@ export const RouteFolderContextMenu = (
         action: 'addNewRouteToFolder',
         subjectUUID: folderUUID
       }
+    },
+    {
+      label: 'Delete folder',
+      icon: 'delete',
+      disabled: false,
+      payload: {
+        subject: 'routeFolder',
+        action: 'deleteFolder',
+        subjectUUID: folderUUID
+      }
     }
   ];

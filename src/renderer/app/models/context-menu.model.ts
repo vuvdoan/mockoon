@@ -8,16 +8,17 @@ export type ContextMenuEvent = {
 export type ContextMenuItemPayload = {
   subject: DataSubject;
   action:
-    | 'delete'
-    | 'close'
-    | 'duplicate'
-    | 'addNewRouteToFolder'
-    | 'duplicateToEnv'
-    | 'env_settings'
-    | 'env_logs'
-    | 'showInFolder'
-    | 'export'
-    | 'toggle';
+  | 'delete'
+  | 'close'
+  | 'duplicate'
+  | 'addNewRouteToFolder'
+  | 'deleteFolder'
+  | 'duplicateToEnv'
+  | 'env_settings'
+  | 'env_logs'
+  | 'showInFolder'
+  | 'export'
+  | 'toggle';
   subjectUUID: string;
 };
 

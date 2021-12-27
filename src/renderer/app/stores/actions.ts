@@ -42,6 +42,7 @@ export const enum ActionTypes {
   ADD_ROUTE,
   ADD_ROUTE_TO_FOLDER,
   ADD_FOLDER,
+  DELETE_FOLDER,
   REMOVE_ROUTE,
   REMOVE_ROUTE_RESPONSE,
   UPDATE_ROUTE,
@@ -278,6 +279,17 @@ export const addFolderAction = (folder: RouteFolder) =>
   <const>{
     type: ActionTypes.ADD_FOLDER,
     folder
+  };
+
+/**
+ * Delete a folder
+ *
+ * @param route - route to add
+ */
+export const deleteFolderAction = (folderUUID: string) =>
+  <const>{
+    type: ActionTypes.DELETE_FOLDER,
+    folderUUID
   };
 
 /**
@@ -526,6 +538,7 @@ export type Actions =
   | ReturnType<typeof addRouteAction>
   | ReturnType<typeof addRouteToFolderAction>
   | ReturnType<typeof addFolderAction>
+  | ReturnType<typeof deleteFolderAction>
   | ReturnType<typeof updateRouteFolderAction>
   | ReturnType<typeof removeRouteAction>
   | ReturnType<typeof removeRouteResponseAction>

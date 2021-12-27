@@ -295,7 +295,7 @@ export const environmentReducer = (
       if (action.folderUUID !== state.activeFolderUUID) {
 
         // validation. return current state immediately if failed
-        const foundFolder = state.environments.find( (environment) =>  
+        const foundFolder = state.environments.find((environment) =>
           environment.uuid === state.activeEnvironmentUUID)?.folders
           .find((folder) => folder.uuid === action.folderUUID);
 
@@ -742,6 +742,40 @@ export const environmentReducer = (
         break;
       }
 
+      newState = state;
+      break;
+    }
+
+    case ActionTypes.DELETE_FOLDER: {
+      const activeEnvironment = state.environments.find((env) => env.uuid === state.activeEnvironmentUUID);
+
+      if (activeEnvironment) {
+        newState = {
+          ...state,
+          environments: state.environments.map((env) => {
+            if (env.uuid === activeEnvironment.uuid) {
+              return {
+                ...env,
+                routes: env.routes.map((route) => {
+                  if (route.parentFolder?.indexOf(action.folderUUID) !== -1) {
+                    return {
+                      ...route,
+                      parentFolder: '' //TODO: currently we are movint these routes to the root folder. But it could also be moved to the direct parent folder
+                    }
+                  }
+                  return route
+                }),
+                folders: env.folders?.filter((folder) => folder.uuid !== action.folderUUID),
+              }
+            }
+
+            // nothing to change in other environments
+            return env;
+          })
+        }
+
+        break;
+      }
       newState = state;
       break;
     }

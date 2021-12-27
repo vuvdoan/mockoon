@@ -78,6 +78,7 @@ import {
   updateSettingsAction,
   updateUIStateAction,
   addFolderAction,
+  deleteFolderAction,
   addRouteToFolderAction,
   updateRouteFolderAction,
   setActiveFolderAction
@@ -618,6 +619,15 @@ export class EnvironmentsService extends Logger {
     const newRoute = this.schemasBuilderService.buildRoute();
     newRoute.parentFolder = folderUuid;
     this.addRoute(newRoute);
+  }
+
+  /**
+   * Delete folder. Every route in this folder will be assgned to the parent folder.
+   * TODO: for now we assinged to the root 'parent folder'. But in the future, the routes
+   * should be assigned to the direct parent folder.
+   */
+  public deleteFolder(folderUuid: string) {
+    this.store.update(deleteFolderAction(folderUuid));
   }
 
   /**

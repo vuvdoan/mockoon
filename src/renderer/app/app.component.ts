@@ -171,6 +171,13 @@ export class AppComponent implements OnInit, AfterViewInit {
           );
         }
         break;
+      case 'deleteFolder':
+        if (payload.subject === 'routeFolder') {
+          this.environmentsService.deleteFolder(
+            payload.subjectUUID
+          );
+        }
+        break;
     }
   }
 
