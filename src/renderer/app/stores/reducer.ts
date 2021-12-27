@@ -761,18 +761,19 @@ export const environmentReducer = (
                     return {
                       ...route,
                       parentFolder: '' //TODO: currently we are movint these routes to the root folder. But it could also be moved to the direct parent folder
-                    }
+                    };
                   }
-                  return route
+
+                  return route;
                 }),
                 folders: env.folders?.filter((folder) => folder.uuid !== action.folderUUID),
-              }
+              };
             }
 
             // nothing to change in other environments
             return env;
           })
-        }
+        };
 
         break;
       }
