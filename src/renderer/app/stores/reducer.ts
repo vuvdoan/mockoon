@@ -274,9 +274,13 @@ export const environmentReducer = (
           (route) => route.uuid === action.routeUUID
         );
 
+        const activeFolder = activeRoute.parentFolder?.slice(
+          activeRoute.parentFolder.indexOf('/') > 0 ? activeRoute.parentFolder.lastIndexOf('/') : 0);
+
         newState = {
           ...state,
           activeRouteUUID: action.routeUUID,
+          activeFolderUUID: activeFolder,
           activeRouteResponseUUID: activeRoute.responses.length
             ? activeRoute.responses[0].uuid
             : null,
@@ -305,10 +309,13 @@ export const environmentReducer = (
           break;
         }
 
+        const activeRoute = foundFolder.routes.length > 0 ? foundFolder.routes[0].uuid : null; 
+
         //TODO: what should we do with the current active route?
         newState = {
           ...state,
           activeFolderUUID: action.folderUUID,
+          activeRouteUUID: activeRoute,
           activeTab: 'RESPONSE',
           activeView: 'ENV_FOLDERS',
           environments: state.environments
@@ -725,6 +732,10 @@ export const environmentReducer = (
         const newFolder = action.folder;
         newState = {
           ...state,
+          activeRouteUUID: null,
+          activeFolderUUID: newFolder.uuid,
+          activeTab: 'RESPONSE',
+          activeView: 'ENV_FOLDERS',
           environments: state.environments.map((environment) => {
             if (environment.uuid === state.activeEnvironmentUUID) {
               const folders = environment.folders ? [...environment.folders] : [];
@@ -772,7 +783,12 @@ export const environmentReducer = (
 
             // nothing to change in other environments
             return env;
-          })
+          }),
+          // when deleting a folder, we select the first route in the root folder. Or if none found, the first one the environment route list
+          activeRouteUUID: activeEnvironment.routes.find( (route) => !route.parentFolder)?.uuid ?? 
+            activeEnvironment.routes[0].uuid,
+          activeFolderUUID: null
+
         };
 
         break;
@@ -798,6 +814,7 @@ export const environmentReducer = (
         newState = {
           ...state,
           activeRouteUUID: newRoute.uuid,
+          activeFolderUUID: null,
           activeRouteResponseUUID: newRoute.responses[0].uuid,
           activeTab: 'RESPONSE',
           activeView: 'ENV_ROUTES',

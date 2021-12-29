@@ -279,8 +279,9 @@ export class EnvironmentsService extends Logger {
    */
   public setActiveRoute(routeUUIDOrDirection: string | ReducerDirectionType) {
     const activeRouteUUID = this.store.get('activeRouteUUID');
+    const activeFolder = this.store.getActiveFolder();
 
-    if (activeRouteUUID && activeRouteUUID !== routeUUIDOrDirection) {
+    if ((activeRouteUUID || activeFolder) && activeRouteUUID !== routeUUIDOrDirection) {
       if (
         routeUUIDOrDirection === 'next' ||
         routeUUIDOrDirection === 'previous'

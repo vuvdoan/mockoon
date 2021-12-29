@@ -12,12 +12,10 @@ import { FormBuilder, FormControl } from '@angular/forms';
 import { Environment, Route, RouteFolder } from '@mockoon/commons';
 import { BehaviorSubject, combineLatest, from, Observable, Subscription } from 'rxjs';
 import {
-  concatMap,
   debounceTime,
   distinctUntilChanged,
   filter,
   map,
-  mergeMap,
   tap
 } from 'rxjs/operators';
 import { RouteFolderContextMenu, RoutesContextMenu } from 'src/renderer/app/components/context-menu/context-menus';
