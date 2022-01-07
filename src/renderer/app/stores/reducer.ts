@@ -309,7 +309,7 @@ export const environmentReducer = (
           break;
         }
 
-        const activeRoute = foundFolder.routes.length > 0 ? foundFolder.routes[0].uuid : null; 
+        const activeRoute = foundFolder.routes.length > 0 ? foundFolder.routes[0].uuid : null;
 
         //TODO: what should we do with the current active route?
         newState = {
@@ -404,6 +404,22 @@ export const environmentReducer = (
             ...activeEnvironmentStatus,
           }
         }
+      };
+      break;
+    }
+
+    case ActionTypes.AUTOGROUP_FOLDER: {
+      newState = {
+        ...state,
+        environments: state.environments.map((environment) => {
+          if (environment.uuid === state.activeEnvironmentUUID) {
+            return {
+              ...action.environment
+            }
+          }
+
+          return environment;
+        })
       };
       break;
     }
@@ -785,7 +801,7 @@ export const environmentReducer = (
             return env;
           }),
           // when deleting a folder, we select the first route in the root folder. Or if none found, the first one the environment route list
-          activeRouteUUID: activeEnvironment.routes.find( (route) => !route.parentFolder)?.uuid ?? 
+          activeRouteUUID: activeEnvironment.routes.find((route) => !route.parentFolder)?.uuid ??
             activeEnvironment.routes[0].uuid,
           activeFolderUUID: null
 

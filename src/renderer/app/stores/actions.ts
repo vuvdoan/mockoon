@@ -18,6 +18,7 @@ import {
   UIStateProperties,
   ViewsNameType
 } from 'src/renderer/app/stores/store';
+import { environment } from 'src/renderer/environments/environment';
 import { RouteFolderProperties } from '../models/route-folder.model';
 
 export const enum ActionTypes {
@@ -42,6 +43,7 @@ export const enum ActionTypes {
   ADD_ROUTE,
   ADD_ROUTE_TO_FOLDER,
   ADD_FOLDER,
+  AUTOGROUP_FOLDER,
   DELETE_FOLDER,
   REMOVE_ROUTE,
   REMOVE_ROUTE_RESPONSE,
@@ -291,6 +293,13 @@ export const deleteFolderAction = (folderUUID: string) =>
     type: ActionTypes.DELETE_FOLDER,
     folderUUID
   };
+
+
+export const autoGroupRoutesAction = (environment: Environment) =>
+  <const>{
+    type: ActionTypes.AUTOGROUP_FOLDER,
+    environment
+  }
 
 /**
  * Set the active folder (currently displayed)
@@ -556,4 +565,5 @@ export type Actions =
   | ReturnType<typeof startRouteDuplicationToAnotherEnvironmentAction>
   | ReturnType<typeof finalizeRouteDuplicationToAnotherEnvironmentAction>
   | ReturnType<typeof duplicateRouteToAnotherEnvironmentAction>
+  | ReturnType<typeof autoGroupRoutesAction>
   | ReturnType<typeof addFolderAction>;

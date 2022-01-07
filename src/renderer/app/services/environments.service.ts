@@ -6,6 +6,7 @@ import {
   HighestMigrationId,
   Method,
   Route,
+  RouteFolder,
   RouteResponse
 } from '@mockoon/commons';
 import { cloneDeep } from 'lodash';
@@ -81,7 +82,8 @@ import {
   deleteFolderAction,
   addRouteToFolderAction,
   updateRouteFolderAction,
-  setActiveFolderAction
+  setActiveFolderAction,
+  autoGroupRoutesAction
 
 } from 'src/renderer/app/stores/actions';
 import { ReducerDirectionType } from 'src/renderer/app/stores/reducer';
@@ -93,6 +95,7 @@ import {
 } from 'src/renderer/app/stores/store';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
 import { VFolder } from '../components/menus/routes-menu/routes-menu.component';
+import { environment } from 'src/renderer/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -610,6 +613,51 @@ export class EnvironmentsService extends Logger {
       //this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
       this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
       this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
+    }
+  }
+
+  /**
+   * Auto group existing routes in the current active environemtn by parsing the path and 
+   * group them by the first URL path. Only group if there are more than x routes with the same path
+   * Skip routes, which already has a parentFolder!
+   * For now we are working modifying a envrionment and pass it to reducer. Is there a better way?
+   * 
+   */
+  public autoGroupRoutes() {
+    const activeEnv = this.store.getActiveEnvironment();
+    if (activeEnv) {
+      const routeFolderMap: Map<string, Array<Route>> = new Map(); 
+
+      activeEnv.routes.filter((route) => !route.parentFolder)
+        .forEach((route) => {
+          // for now assuming that the first path is the prefix. we should also consider the second path 
+          const paths = route.endpoint.split('/');
+          let folderName:string;
+          if (paths.length > 2) {
+            folderName = paths[0] + '/' +paths[1];
+          } else {
+            folderName = route.endpoint.split('/')[0];
+          }
+          if(routeFolderMap.get(folderName)) {
+            routeFolderMap.get(folderName).push(route);
+          } else {
+            routeFolderMap.set(folderName, [route]);
+          }
+      });
+
+      // only create folders if there are more than 2 routes found
+      routeFolderMap.forEach((routes, key) => {
+        if (routes.length >= 2) {
+          let newFolder = this.schemasBuilderService.buildFolder(key);
+          activeEnv.folders.push(newFolder);
+
+          routes.forEach((routeToBeUpdated) => { //should be the same object as in active environment
+            routeToBeUpdated.parentFolder = newFolder.uuid;
+          })
+        }
+      })
+
+      this.store.update(autoGroupRoutesAction(activeEnv));
     }
   }
 

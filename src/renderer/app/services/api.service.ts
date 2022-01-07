@@ -34,6 +34,9 @@ export class ApiService {
     MainAPI.receive('APP_MENU', (action) => {
       this.zone.run(async () => {
         switch (action) {
+          case 'AUTO_GROUP_ROUTE':
+            this.environmentsService.autoGroupRoutes();
+            break;
           case 'NEW_FOLDER':
             this.environmentsService.addFolder();
             break;

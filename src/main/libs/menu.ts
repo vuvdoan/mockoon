@@ -119,6 +119,13 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
         click: () => {
           mainWindow.webContents.send('APP_MENU', 'DELETE_ROUTE');
         }
+      },
+      {
+        id: 'AUTO_GROUP_ROUTE',
+        label: 'Auto group routes in environment',
+        click: () => {
+          mainWindow.webContents.send('APP_MENU', 'AUTO_GROUP_ROUTE');
+        }
       }
     ]
   });
