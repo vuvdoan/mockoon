@@ -5,11 +5,39 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Desktop: Electron Main process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/packages/desktop/",
+      "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/packages/desktop/node_modules/.bin/electron.cmd"
+      },
+      "args": [".", "--remote-debugging-port=8888"],
+      "sourceMaps": true
+    },
+    {
       "type": "chrome",
       "request": "attach",
-      "name": "Attach to Chrome",
+      "name": "Desktop: Electron Renderer process",
       "port": 8888,
-      "webRoot": "${workspaceFolder}"
+      "webRoot": "${workspaceFolder}/packages/desktop"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "CLI",
+      "program": "${workspaceFolder}/packages/cli/bin/run",
+      "args": ["start", "-d", "./test.json"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Desktop: All processes",
+      "configurations": [
+        "Desktop: Electron Main process",
+        "Desktop: Electron Renderer process"
+      ]
     }
   ]
 }

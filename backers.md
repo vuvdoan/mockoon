@@ -1,23 +1,17 @@
-# Sponsors & Backers:
-
-Thank you to everyone who backed Mockoon. You can join them by visiting my page on [GitHub Sponsors](https://github.com/sponsors/255kb) or make a one-time donation:
-
-[![Paypal](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png)](https://paypal.me/255kb) <a href="https://www.buymeacoffee.com/255kb" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-
-## Backers via GitHub Sponsors:
-
-- [mallowigi](https://github.com/mallowigi)
-- [mingyuchoo](https://github.com/mingyuchoo)
-
-## One-Time sponsors
-
 Thank you to all the supporters who donated over time, and all the ones who wanted to remain anonymous!
 
-- 0xhexmeow 
+You can join them by visiting our Sponsor page on [GitHub Sponsors](https://github.com/sponsors/mockoon)
+
+[![sponsor button](https://mockoon.com/images/sponsor-btn-250.png)](https://github.com/sponsors/mockoon)
+
+# Sponsors & Backers:
+
+- 0xhexmeow
 - Adam Recvlohe
 - Adialix
 - Andres Saa
 - Andrey Kozlov
+- [Anthony Critelli](https://github.com/acritelli)
 - Валентин Радчук
 - Barefootdeveloper
 - Buckley Robinson
@@ -25,7 +19,10 @@ Thank you to all the supporters who donated over time, and all the ones who want
 - Cyhung
 - Dwi Satria
 - Efe
+- [Egor Stronhin](https://github.com/egor-xyz)
 - Emadashi
+- Everett
+- [fl0rian-p](https://github.com/fl0rian-p)
 - François Grémont
 - Jakub Bartkowiak
 - Jakub Ślusarski
@@ -33,8 +30,10 @@ Thank you to all the supporters who donated over time, and all the ones who want
 - John
 - Jonatan Gonzalez
 - Kelly Farris
+- [mallowigi](https://github.com/mallowigi)
 - Max Sommer
 - Mike
+- [mingyuchoo](https://github.com/mingyuchoo)
 - Mishal
 - Mokkun
 - Mrsean2k
@@ -46,7 +45,7 @@ Thank you to all the supporters who donated over time, and all the ones who want
 - Roybarberuk
 - Samer Samer
 - Samja666
-- Sander 
+- Sander
 - Sebastián Díaz
 - Serj
 - Silicon Jungles
@@ -59,4 +58,4 @@ Thank you to all the supporters who donated over time, and all the ones who want
 - Xutzin
 - Yuemuc
 
-(List from GitHub one-time sponsors and [Buy Me A Coffee](https://www.buymeacoffee.com/255kb) page)
+(List from [GitHub Sponsors](https://github.com/sponsors/mockoon) and [Buy Me A Coffee](https://www.buymeacoffee.com/255kb) page)

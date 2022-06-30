@@ -10,25 +10,24 @@
   <a href="https://discord.gg/MutRpsY5gE"><img src="https://img.shields.io/badge/Discord-go-blue.svg?style=flat-square&colorA=6c84d9&colorB=1da1f2"/></a>
   <br>
   <br>
-  <h1>Mockoon</h1>
+  <h1>Mockoon: awesome API mocking</h1>
 </div>
 
-Mockoon is the easiest and quickest way to run mock APIs locally. No remote deployment, no account required, open source.
-It has been built with Electron and can be used on Windows (exe), Linux (deb, rpm, Appimage and Snap) and MacOS (dmg or brew). You can download it here: [mockoon.com](https://mockoon.com)
+Mockoon is the easiest and quickest way to run mock APIs locally. No remote deployment, no account required, free and open-source.
 
-![screenshot](https://mockoon.com/images/screenshot-repo.png?)
+It's a desktop application and a CLI that help you work faster with APIs by mocking them. Integrate third-party APIs quicker, improve your integration tests, speed up your development, etc.
+➡️ [More use cases](https://mockoon.com/use-cases/)
 
-## Sponsors
-
-If you like Mockoon, you can support the project with a one-time donation:
-[![Paypal](https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png)](https://paypal.me/255kb) <a href="https://www.buymeacoffee.com/255kb" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/white_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-
-You can also  [sponsor the maintainer (255kb) on GitHub](https://github.com/sponsors/255kb) and join all the [Sponsors and Backers](https://github.com/mockoon/mockoon/blob/main/backers.md) who helped this project over time!
+<div align="center">
+  <img width="50%" src="https://mockoon.com/images/repo-illustration.png">
+</div>
 
 ## Features
 
 Mockoon offers many features:
+
 - unlimited number of mock local servers and routes
+- CLI to run your mock in headless environments, CI, etc.
 - complete control on routes definition: HTTP methods and statuses, regex paths, file serving, custom headers, etc.
 - OpenAPI compatibility
 - Record/logs of all entering and forwarded requests
@@ -36,15 +35,43 @@ Mockoon offers many features:
 - proxy forwarding mode
 - HTTPS support
 
-You can check the [complete list](https://mockoon.com/features) on the website.
+You can check the [complete list](https://mockoon.com/features/) on the website.
 
-## Download
+---
 
-You can get Mockoon [latest release](https://github.com/mockoon/mockoon/releases/latest) directly from this repository or on the official [website](https://mockoon.com/#download). Mockoon is also available through Homebrew `brew install --cask mockoon`, Snap store `snap install mockoon`, Chocolatey `choco install mockoon` or AUR `yay -S mockoon-bin` (or any other AUR helper).
+Mockoon is an open-source project built by volunteer maintainers. If you like our application, please consider sponsoring us and join all the [Sponsors and Backers](https://github.com/mockoon/mockoon/blob/main/backers.md) who helped this project over time!
 
-## Documentation
+<div align="center" style="margin-top:20px;margin-bottom:20px;">
+<a href="https://github.com/sponsors/mockoon"><img src="https://mockoon.com/images/sponsor-btn.png" width="250" alt="sponsor button" /></a>
+</div>
 
-You will find the [documentation](https://mockoon.com/docs/latest) on the official website. It covers Mockoon's most complex features. Feel free to contribute or ask for new topics to be covered.
+---
+
+## Download the desktop application
+
+You can get Mockoon desktop's [latest release](https://github.com/mockoon/mockoon/releases/latest) directly from this repository or on the official [website](https://mockoon.com/#download). Mockoon desktop is also available through:
+
+MacOS:
+
+- [_Homebrew_](https://formulae.brew.sh/cask/mockoon): `brew install --cask mockoon`.
+
+Windows:
+
+- [_Chocolatey_](https://community.chocolatey.org/packages/mockoon): `choco install mockoon`.
+- [_Windows Store_](https://www.microsoft.com/en-us/p/mockoon/9pk8dmsn00jj)
+
+Linux:
+
+- [_Snap store_](https://snapcraft.io/mockoon): `snap install mockoon`.
+- [_AUR_](https://aur.archlinux.org/packages/mockoon-bin): `yay -S mockoon-bin`.
+
+## Install the CLI
+
+Mockoon CLI is available as an [NPM package](https://www.npmjs.com/package/@mockoon/cli). Please look at our [dedicated documentation](https://github.com/mockoon/mockoon/blob/main/packages/cli) to learn how to install and use it.
+
+## Mockoon's documentation
+
+You will find Mockoon's [documentation](https://mockoon.com/docs/latest) on the official website. It covers Mockoon's most complex features. Feel free to contribute or ask for new topics to be covered.
 
 ## Support/feedback
 
