@@ -18,7 +18,7 @@ export class ApiService {
     private importExportService: ImportExportService,
     private store: Store,
     private zone: NgZone
-  ) { }
+  ) {}
 
   public init(
     changelogModal: ChangelogModalComponent,
@@ -48,9 +48,6 @@ export class ApiService {
             break;
           case 'NEW_ROUTE':
             this.environmentsService.addRoute();
-            break;
-          case 'NEW_FOLDER':
-            this.environmentsService.addFolder();
             break;
           case 'START_ENVIRONMENT':
             this.environmentsService.toggleActiveEnvironment();

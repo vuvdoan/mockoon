@@ -1,4 +1,4 @@
-import { Environment, Route, RouteResponse, RouteFolder } from '@mockoon/commons';
+import { Environment, Route, RouteResponse } from '@mockoon/commons';
 import {
   ArrayContainsObjectKey,
   MoveArrayItem
@@ -10,7 +10,6 @@ import {
   updateDuplicatedRoutes
 } from 'src/renderer/app/stores/reducer-utils';
 import { EnvironmentsStatuses, StoreType } from 'src/renderer/app/stores/store';
-import { environment } from 'src/renderer/environments/environment';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
 
 export type ReducerDirectionType = 'next' | 'previous';
@@ -54,8 +53,8 @@ export const environmentReducer = (
       if (action.environmentUUID !== state.activeEnvironmentUUID) {
         const activeEnvironment = action.environmentUUID
           ? state.environments.find(
-            (environment) => environment.uuid === action.environmentUUID
-          )
+              (environment) => environment.uuid === action.environmentUUID
+            )
           : state.environments[0];
 
         newState = {
@@ -68,7 +67,7 @@ export const environmentReducer = (
             : null,
           activeRouteResponseUUID:
             activeEnvironment.routes.length &&
-              activeEnvironment.routes[0].responses.length
+            activeEnvironment.routes[0].responses.length
               ? activeEnvironment.routes[0].responses[0].uuid
               : null,
           activeTab: 'RESPONSE',
@@ -113,7 +112,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           newEnvironment.routes.length &&
-            newEnvironment.routes[0].responses.length
+          newEnvironment.routes[0].responses.length
             ? newEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -217,84 +216,18 @@ export const environmentReducer = (
       break;
     }
 
-    case ActionTypes.ADD_ROUTE_TO_FOLDER: {
-      // only add a route if there is at least one environment
-      if (state.environments.length > 0) {
-        const activeEnvironmentStatus =
-          state.environmentsStatus[state.activeEnvironmentUUID];
-
-        let needRestart: boolean;
-        if (activeEnvironmentStatus.running) {
-          needRestart = true;
-        }
-
-        const newRoute = action.route;
-
-        // Get the folder object from active environment
-        const activeEnv = state.environments.find(
-          (env) => env.uuid === state.activeEnvironmentUUID
-        );
-
-
-        //const folder = activeEnv.folders.find((folder) => folder.uuid === action.folderUUID);
-        //folder.routes.push(action.route);
-
-        newState = {
-          ...state,
-          activeRouteUUID: action.routeUUID,
-          activeRouteResponseUUID: newRoute.responses[0].uuid,
-          activeTab: 'RESPONSE',
-          activeView: 'ENV_ROUTES',
-          environments: state.environments.map(
-            (env) => {
-              if (env.uuid === state.activeEnvironmentUUID) {
-                env.folders.find((folder) => folder.uuid === action.folderUUID)
-                  .routes.push(action.route)
-              }
-              return env;
-            }
-          ),
-          environmentsStatus: {
-            ...state.environmentsStatus,
-            [state.activeEnvironmentUUID]: {
-              ...activeEnvironmentStatus,
-              needRestart
-            }
-          }
-        };
-        break;
-      }
-
-      newState = state;
-
-      break;
-
-    }
-
     case ActionTypes.SET_ACTIVE_ROUTE: {
       if (action.routeUUID !== state.activeRouteUUID) {
         const activeEnvironment = state.environments.find(
           (environment) => environment.uuid === state.activeEnvironmentUUID
         );
-
-        let activeRoute: Route;
-
-        if (action.parentFolderUUID) {
-          let folder = activeEnvironment.folders.find((folder) => folder.uuid === action.parentFolderUUID);
-          if (!folder) {
-            //this should not happen. TODO: what shall we do here
-            newState = state;
-            break;
-          }
-          activeRoute = folder.routes.find((route) => route.uuid === action.routeUUID);
-        } else {
-          activeRoute = activeEnvironment.routes.find((route) => route.uuid === action.routeUUID);
-        }
+        const activeRoute = activeEnvironment.routes.find(
+          (route) => route.uuid === action.routeUUID
+        );
 
         newState = {
           ...state,
           activeRouteUUID: action.routeUUID,
-          activeFolderUUID: action.parentFolderUUID,
           activeRouteResponseUUID: activeRoute.responses.length
             ? activeRoute.responses[0].uuid
             : null,
@@ -309,63 +242,6 @@ export const environmentReducer = (
       break;
     }
 
-    case ActionTypes.SET_ACTIVE_FOLDER: {
-      if (action.folderUUID !== state.activeFolderUUID) {
-        // select the first route
-        const firstRoute: Route = state.environments
-          .find((environment) => environment.uuid === state.activeEnvironmentUUID)
-          .folders.find((folder) => folder.uuid === action.folderUUID)
-          .routes[0]
-
-        newState = {
-          ...state,
-          activeFolderUUID: action.folderUUID,
-          activeRouteUUID: firstRoute.uuid,
-          activeRouteResponseUUID: firstRoute.responses.length
-            ? firstRoute.responses[0].uuid
-            : null,
-          activeTab: 'RESPONSE',
-          activeView: 'ENV_ROUTES',
-          environments: state.environments
-        };
-        break;
-      }
-
-      newState = state;
-      break;
-    }
-
-    case ActionTypes.TOOGLE_ACTIVE_FOLDER: {
-      // when user toogle folder, the folder will be activated in the frontend, but no route is selected at this point. 
-      // the folder will either be closed or opened when it is activated
-      const activeEnvironment = state.environments.find(
-        (env) => env.uuid === state.activeEnvironmentUUID
-      );
-
-      const activeFolder = activeEnvironment.folders.find(
-        (folder) => folder.uuid === action.folderUUID
-      )
-
-      if (activeFolder == null) {
-        // this should never happend. 
-        newState = state;
-        break;
-      }
-
-      activeFolder.isOpen = !activeFolder.isOpen // will this change be persisted? and is there a event fired? 
-      newState = {
-        ...state,  // what about activeRoute? should we change? 
-        activeFolderUUID: action.folderUUID,
-        // we either set it to the first route found or if the folder is empty 
-        //set it to a imaginary value
-        activeRouteUUID: activeFolder.routes[0]?.uuid || 'test',
-        activeTab: 'RESPONSE',
-        activeView: 'ENV_FOLDERS', // we should change it to different view for folder
-        environments: state.environments
-      };
-      break;
-    }
-
     case ActionTypes.NAVIGATE_ROUTES: {
       const activeEnvironment = state.environments.find(
         (environment) => environment.uuid === state.activeEnvironmentUUID
@@ -374,7 +250,7 @@ export const environmentReducer = (
         (route) => route.uuid === state.activeRouteUUID
       );
 
-      let newRoute: Route;
+      let newRoute;
 
       if (
         action.direction === 'next' &&
@@ -440,7 +316,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           activeEnvironment.routes.length &&
-            activeEnvironment.routes[0].responses.length
+          activeEnvironment.routes[0].responses.length
             ? activeEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -505,7 +381,7 @@ export const environmentReducer = (
               : null,
             activeRouteResponseUUID:
               newEnvironments[0].routes.length &&
-                newEnvironments[0].routes[0].responses.length
+              newEnvironments[0].routes[0].responses.length
                 ? newEnvironments[0].routes[0].responses[0].uuid
                 : null
           };
@@ -685,48 +561,6 @@ export const environmentReducer = (
       break;
     }
 
-    case ActionTypes.ADD_FOLDER: {
-      if (state.environments.length > 0) {
-        const activeEnvironmentStatus =
-          state.environmentsStatus[state.activeEnvironmentUUID];
-        // no need to restart
-
-        const newFolder = action.folder;
-        newState = {
-          ...state,
-          activeTab: 'RESPONSE',
-          activeView: 'ENV_ROUTES',
-          environments: state.environments.map((environment) => {
-            if (environment.uuid === state.activeEnvironmentUUID) {
-              const folders = environment.folders ? [...environment.folders] : [];
-              folders.push(newFolder);
-
-              return {
-                ...environment,
-                folders
-              };
-            }
-
-            return environment;
-          }),
-          environmentsStatus: {
-            ...state.environmentsStatus,
-            [state.activeEnvironmentUUID]: {
-              ...activeEnvironmentStatus
-            }
-          },
-          routesFilter: ''
-        };
-        break;
-      }
-
-      newState = state;
-      break;
-    }
-
-
-
-
     case ActionTypes.ADD_ROUTE: {
       // only add a route if there is at least one environment
       if (state.environments.length > 0) {
@@ -740,7 +574,6 @@ export const environmentReducer = (
 
         const newRoute = action.route;
         const afterUUID = action.afterUUID;
-
 
         newState = {
           ...state,
@@ -806,86 +639,28 @@ export const environmentReducer = (
           activeEnvironmentStatus.running;
       }
 
-      const activeEnvironment = state.environments.find(
-        (environment) => environment.uuid === state.activeEnvironmentUUID);
-
-      let newRoute: Route[] = activeEnvironment.routes;
-      let newFolders: RouteFolder[] = activeEnvironment.folders;
-
-      let updateRouteFct = function(route: Route): Route {
-        if (specifiedUUID) {
-          if (route.uuid === specifiedUUID) {
-            return {
-              ...route,
-              ...action.properties
-            };
-          }
-        } else if (route.uuid === state.activeRouteUUID) {
-          return {
-            ...route,
-            ...action.properties
-          };
-        }
-        return route;
-      }
-
-      if (action.folder) {
-        newFolders = activeEnvironment.folders.map((folder) => {
-          if (folder.uuid === action.folder) {
-            let tmp = folder.routes.map((route) => updateRouteFct(route));
-            folder.routes = tmp;
-          }
-          return folder;
-        });
-      } else {
-        newRoute = activeEnvironment.routes.map((route) => updateRouteFct(route))
-      }
-
       newState = {
         ...state,
         environments: state.environments.map((environment) => {
           if (environment.uuid === state.activeEnvironmentUUID) {
             return {
               ...environment,
-              routes: newRoute,
-              folders: newFolders
-            };
-          }
-
-          return environment;
-        }),
-        environmentsStatus: {
-          ...state.environmentsStatus,
-          [state.activeEnvironmentUUID]: {
-            ...activeEnvironmentStatus,
-            needRestart
-          }
-        }
-      };
-      break;
-    }
-
-    case ActionTypes.UPDATE_ROUTE_FOLDER: {
-      const activeEnvironmentStatus =
-        state.environmentsStatus[state.activeEnvironmentUUID];
-
-      // no need to restarte
-
-      newState = {
-        ...state,
-        environments: state.environments.map((environment) => {
-          if (environment.uuid === state.activeEnvironmentUUID) {
-            return {
-              ...environment,
-              folders: environment.folders.map((folder) => {
-                if (folder.uuid === state.activeFolderUUID) {
+              routes: environment.routes.map((route) => {
+                if (specifiedUUID) {
+                  if (route.uuid === specifiedUUID) {
+                    return {
+                      ...route,
+                      ...action.properties
+                    };
+                  }
+                } else if (route.uuid === state.activeRouteUUID) {
                   return {
-                    ...folder,
+                    ...route,
                     ...action.properties
                   };
                 }
 
-                return folder;
+                return route;
               })
             };
           }
@@ -896,6 +671,7 @@ export const environmentReducer = (
           ...state.environmentsStatus,
           [state.activeEnvironmentUUID]: {
             ...activeEnvironmentStatus,
+            needRestart
           }
         }
       };
@@ -1153,12 +929,12 @@ export const environmentReducer = (
     },
     duplicatedRoutes:
       action.type === ActionTypes.ADD_ROUTE ||
-        action.type === ActionTypes.REMOVE_ROUTE ||
-        action.type === ActionTypes.MOVE_ROUTES ||
-        action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
-        (action.type === ActionTypes.UPDATE_ROUTE &&
-          action.properties &&
-          (action.properties.endpoint || action.properties.method))
+      action.type === ActionTypes.REMOVE_ROUTE ||
+      action.type === ActionTypes.MOVE_ROUTES ||
+      action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
+      (action.type === ActionTypes.UPDATE_ROUTE &&
+        action.properties &&
+        (action.properties.endpoint || action.properties.method))
         ? updateDuplicatedRoutes(newState)
         : newState.duplicatedRoutes
   };

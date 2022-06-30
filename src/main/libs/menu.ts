@@ -96,14 +96,6 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
         }
       },
       {
-        id: 'NEW_FOLDER',
-        label: 'Add new folder',
-        accelerator: 'Shift+CmdOrCtrl+F',
-        click: () => {
-          mainWindow.webContents.send('APP_MENU', 'NEW_FOLDER');
-        }
-      },
-      {
         id: 'DUPLICATE_ROUTE',
         label: 'Duplicate current route',
         accelerator: 'Shift+CmdOrCtrl+D',
@@ -324,7 +316,6 @@ export const toggleEnvironmentMenuItems = (state: boolean) => {
     'NEXT_ENVIRONMENT',
     'PREVIOUS_ROUTE',
     'NEXT_ROUTE',
-    'NEXT_FOLDER',
     'EXPORT_FILE',
     'EXPORT_FILE_SELECTED',
     'EXPORT_OPENAPI_FILE'

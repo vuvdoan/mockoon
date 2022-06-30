@@ -9,21 +9,20 @@ import {
   ViewChild
 } from '@angular/core';
 import { FormBuilder, FormControl } from '@angular/forms';
-import { Environment, Route, RouteFolder } from '@mockoon/commons';
+import { Environment, Route } from '@mockoon/commons';
 import { combineLatest, from, Observable, Subscription } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
-  distinctUntilKeyChanged,
   filter,
   map,
   tap
 } from 'rxjs/operators';
-import { RouteFolderContextMenu, RoutesContextMenu } from 'src/renderer/app/components/context-menu/context-menus';
+import { RoutesContextMenu } from 'src/renderer/app/components/context-menu/context-menus';
 import { Config } from 'src/renderer/app/config';
 import { MainAPI } from 'src/renderer/app/constants/common.constants';
 import { FocusableInputs } from 'src/renderer/app/enums/ui.enum';
-import { ContextMenuEvent, ContextMenuItem } from 'src/renderer/app/models/context-menu.model';
+import { ContextMenuEvent } from 'src/renderer/app/models/context-menu.model';
 import { EnvironmentsService } from 'src/renderer/app/services/environments.service';
 import { EventsService } from 'src/renderer/app/services/events.service';
 import { UIService } from 'src/renderer/app/services/ui.service';
@@ -46,10 +45,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   public settings$: Observable<Settings>;
   public activeEnvironment$: Observable<Environment>;
   public routeList$: Observable<Route[]>;
-  public routeFolderList$: Observable<RouteFolder[]>;
   public activeRoute$: Observable<Route>;
-  public activeRoute: string;
-  public activeFolder$: Observable<RouteFolder>;
   public environmentsStatus$: Observable<EnvironmentsStatuses>;
   public duplicatedRoutes$: Observable<DuplicatedRoutesTypes>;
   public routesFilter$: Observable<string>;
@@ -66,7 +62,7 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     private eventsService: EventsService,
     private uiService: UIService,
     private formBuilder: FormBuilder
-  ) { }
+  ) {}
 
   @HostListener('keydown', ['$event'])
   public escapeFilterInput(event: KeyboardEvent) {
@@ -78,42 +74,19 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.os$ = from(MainAPI.invoke('APP_GET_OS'));
     this.routesFilter = this.formBuilder.control('');
+
     this.activeEnvironment$ = this.store.selectActiveEnvironment();
     this.activeRoute$ = this.store.selectActiveRoute();
-    // basically, this is the same pipe as activeRoute$. only different is the inside operator 
-    this.activeFolder$ = this.store.selectActiveFolder();
     this.duplicatedRoutes$ = this.store.select('duplicatedRoutes');
     this.environmentsStatus$ = this.store.select('environmentsStatus');
     this.settings$ = this.store.select('settings');
     this.routesFilter$ = this.store.select('routesFilter');
 
-    //NOTE: should this have the same logic as routelist?
-    this.routeFolderList$ = combineLatest([
-      this.store.selectActiveEnvironment().pipe(
-        filter((activeEnvironment) => !!activeEnvironment),
-        distinctUntilChanged(),
-        map((activeEnvironment) => activeEnvironment.folders)
-      ),
-      this.routesFilter$.pipe(
-        tap((search) => {
-          this.routesFilter.patchValue(search, { emitEvent: false });
-        })
-      )
-    ]).pipe(
-      map(([folders, search]) => {
-        return folders; // no filtering here. TODO: filter folder or route here
-      })
-    );
-
-
     this.routeList$ = combineLatest([
       this.store.selectActiveEnvironment().pipe(
         filter((activeEnvironment) => !!activeEnvironment),
         distinctUntilChanged(),
-        map((activeEnvironment) => {
-          let routes = activeEnvironment.routes;
-          return routes;
-        })
+        map((activeEnvironment) => activeEnvironment.routes)
       ),
       this.routesFilter$.pipe(
         tap((search) => {
@@ -178,22 +151,11 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
     }
   }
 
-
   /**
    * Select a route by UUID, or the first route if no UUID is present
-   * @param routeUUID - the selected route ID
-   * @param folderUUID - the enclosed folder, where the route belong. 
-   *                     If the folderUUID is null, the route  is on the top level
    */
-  public selectRoute(routeUUID: string, folderUUID?: string) {
-    this.environmentsService.setActiveRoute(routeUUID, folderUUID);
-  }
-
-  /**
-   * Select a folder by UUID, or the first folder if no UUID is present
-   */
-  public selectFolder(folderUUID: string) {
-    this.environmentsService.toogleFolder(folderUUID);
+  public selectRoute(routeUUID: string) {
+    this.environmentsService.setActiveRoute(routeUUID);
   }
 
   /**
@@ -201,13 +163,12 @@ export class RoutesMenuComponent implements OnInit, OnDestroy {
    *
    * @param event - click event
    */
-  public openContextMenu(subjectUUID: string, event: MouseEvent, isFolder: boolean = false) {
+  public openContextMenu(routeUUID: string, event: MouseEvent) {
     // if right click display context menu
     if (event && event.button === 2) {
-      const env = this.store.get('environments');
       const menu: ContextMenuEvent = {
         event,
-        items: isFolder ? RouteFolderContextMenu(subjectUUID, env) : RoutesContextMenu(subjectUUID, env)
+        items: RoutesContextMenu(routeUUID, this.store.get('environments'))
       };
 
       this.eventsService.contextMenuEvents.next(menu);
