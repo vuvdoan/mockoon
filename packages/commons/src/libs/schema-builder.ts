@@ -65,9 +65,9 @@ export const BuildEnvironment = (
     hasDefaultHeader: boolean;
     port?: number;
   } = {
-    hasDefaultRoute: true,
-    hasDefaultHeader: true
-  }
+      hasDefaultRoute: true,
+      hasDefaultHeader: true
+    }
 ): Environment => ({
   ...EnvironmentDefault,
   port: params.port !== undefined ? params.port : EnvironmentDefault.port,

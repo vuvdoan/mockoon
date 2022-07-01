@@ -13,6 +13,7 @@ import {
   Route,
   RouteResponse
 } from '../models/route.model';
+import { RouteFolder } from '../models/routeFolder.model';
 
 export const EnvironmentDefault: Environment = {
   get uuid() {
@@ -25,6 +26,7 @@ export const EnvironmentDefault: Environment = {
   port: 3000,
   hostname: '0.0.0.0',
   routes: [],
+  folders: [],
   proxyMode: false,
   proxyHost: '',
   proxyRemovePrefix: false,
@@ -53,6 +55,16 @@ export const RouteDefault: Route = {
   responses: [],
   enabled: true,
   responseMode: null
+};
+
+export const RouteFolderDefault: RouteFolder = {
+  get uuid() {
+    return uuid();
+  },
+  folderName: '',
+  routes: [],
+  documentation: '',
+  isOpen: true
 };
 
 export const RouteResponseDefault: RouteResponse = {
@@ -189,6 +201,7 @@ const RouteResponseSchema = Joi.object<RouteResponse, true>({
 
 export const RouteSchema = Joi.object<Route, true>({
   uuid: UUIDSchema,
+  parentFolder: Joi.string().allow('').allow(null),
   documentation: Joi.string()
     .allow('')
     .failover(RouteDefault.documentation)
@@ -222,6 +235,21 @@ export const RouteSchema = Joi.object<Route, true>({
     .required()
 });
 
+export const RouteFolderSchema = Joi.object<RouteFolder, true>({
+  uuid: UUIDSchema,
+  folderName: Joi.string()
+    .allow('')
+    .failover(RouteFolderDefault.folderName)
+    .required(),
+  documentation: Joi.string()
+    .allow('')
+    .failover(RouteFolderDefault.documentation),
+  routes: Joi.array()
+    .items(RouteSchema, Joi.any().strip())
+    .failover(RouteFolderDefault.routes),
+  isOpen: Joi.bool().failover(RouteFolderDefault.isOpen)
+});
+
 export const EnvironmentSchema = Joi.object<Environment, true>({
   uuid: UUIDSchema,
   lastMigration: Joi.number()
@@ -243,6 +271,9 @@ export const EnvironmentSchema = Joi.object<Environment, true>({
     .items(RouteSchema, Joi.any().strip())
     .failover(EnvironmentDefault.routes)
     .required(),
+  folders: Joi.array()
+    .items(RouteFolderSchema, Joi.any().strip())
+    .failover(EnvironmentDefault.folders),
   proxyMode: Joi.boolean().failover(EnvironmentDefault.proxyMode).required(),
   proxyHost: Joi.string()
     .allow('')

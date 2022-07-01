@@ -43,6 +43,7 @@ export type ResponseRuleTargets =
 export type Route = {
   uuid: string;
   documentation: string;
+  parentFolder?: string;
   method: keyof typeof Methods;
   endpoint: string;
   responses: RouteResponse[];
