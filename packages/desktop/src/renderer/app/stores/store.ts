@@ -3,6 +3,7 @@ import {
   Environment,
   INDENT_SIZE,
   Route,
+  RouteFolder,
   RouteResponse
 } from '@mockoon/commons';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -24,6 +25,7 @@ export class Store {
     activeEnvironmentLogsUUID: {},
     activeEnvironmentUUID: null,
     activeRouteUUID: null,
+    activeFolderUUID: null,
     activeRouteResponseUUID: null,
     environments: [],
     environmentsStatus: {},
@@ -271,6 +273,38 @@ export class Store {
     });
 
     return foundRoute;
+  }
+
+  /**
+   * Get active folder value
+   */
+  public getActiveFolder(): RouteFolder {
+    const activeEnvironment = this.store$.value.environments.find(
+      (environment) => environment.uuid === this.store$.value.activeEnvironmentUUID
+    );
+
+    if (!activeEnvironment || !activeEnvironment.folders) {
+      return null;
+    }
+
+    return activeEnvironment.folders.find(
+      (folder) => folder.uuid === this.store$.value.activeFolderUUID
+    );
+  }
+
+  /**
+   * Select active folder observable  TODO: what to do here?
+   */
+  public selectActiveFolder(): Observable<RouteFolder> {
+    return this.selectActiveEnvironment().pipe(
+      map((environment) =>
+        environment
+          ? environment.folders?.find(
+            (folder) => folder.uuid === this.store$.value.activeFolderUUID
+          )
+          : null
+      )
+    );
   }
 
   /**

@@ -102,6 +102,14 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
     label: 'Routes',
     submenu: [
       {
+        id: 'MENU_NEW_FOLDER',
+        label: 'Add new folder',
+        accelerator: 'Shift+CmdOrCtrl+F',
+        click: () => {
+          mainWindow.webContents.send('APP_MENU', 'NEW_FOLDER');
+        }
+      },
+      {
         id: 'MENU_NEW_ROUTE',
         label: 'Add new route',
         accelerator: 'Shift+CmdOrCtrl+R',
@@ -131,6 +139,13 @@ export const createMenu = (mainWindow: BrowserWindow): Menu => {
         accelerator: 'Alt+Shift+CmdOrCtrl+U',
         click: () => {
           mainWindow.webContents.send('APP_MENU', 'DELETE_ROUTE');
+        }
+      },
+      {
+        id: 'MENU_AUTO_GROUP_ROUTE',
+        label: 'Auto group routes in environment',
+        click: () => {
+          mainWindow.webContents.send('APP_MENU', 'AUTO_GROUP_ROUTE');
         }
       }
     ]

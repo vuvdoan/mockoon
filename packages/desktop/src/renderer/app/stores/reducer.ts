@@ -14,9 +14,15 @@ import {
   updateDuplicatedRoutes
 } from 'src/renderer/app/stores/reducer-utils';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
+import { VFolder } from '../models/route-folder.model';
 
 export type ReducerDirectionType = 'next' | 'previous';
-export type ReducerIndexes = { sourceIndex: number; targetIndex: number };
+export type ReducerIndexes = {
+  sourceIndex: number;
+  targetIndex: number;
+  sourceContainer?: VFolder;
+  targetContainer?: VFolder;
+};
 
 export const environmentReducer = (
   state: StoreType,
@@ -56,8 +62,8 @@ export const environmentReducer = (
       if (action.environmentUUID !== state.activeEnvironmentUUID) {
         const activeEnvironment = action.environmentUUID
           ? state.environments.find(
-              (environment) => environment.uuid === action.environmentUUID
-            )
+            (environment) => environment.uuid === action.environmentUUID
+          )
           : state.environments[0];
 
         newState = {
@@ -70,7 +76,7 @@ export const environmentReducer = (
             : null,
           activeRouteResponseUUID:
             activeEnvironment.routes.length &&
-            activeEnvironment.routes[0].responses.length
+              activeEnvironment.routes[0].responses.length
               ? activeEnvironment.routes[0].responses[0].uuid
               : null,
           activeTab: 'RESPONSE',
@@ -115,7 +121,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           newEnvironment.routes.length &&
-          newEnvironment.routes[0].responses.length
+            newEnvironment.routes[0].responses.length
             ? newEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -158,6 +164,50 @@ export const environmentReducer = (
 
       const newEnvironments = state.environments.map((environment) => {
         if (environment.uuid === state.activeEnvironmentUUID) {
+
+          // TODO: moving within the same folder is already implemented.
+          // but we need also move array item between folers
+          if (action.indexes.sourceContainer && action.indexes.targetContainer) {
+            const sourceFolder = action.indexes.sourceContainer;
+            const targetFolder = action.indexes.targetContainer;
+
+            // first we need to find the index of sources and targets in the environment routes
+            const sourceIndex = environment.routes.findIndex((route) =>
+              route.uuid === sourceFolder.routes[action.indexes.sourceIndex].uuid);
+
+            const targetIndex = environment.routes.findIndex((route) =>
+              route.uuid === sourceFolder.routes[action.indexes.targetIndex].uuid);
+
+            // reordering routes within one folder
+            if (sourceFolder.id === targetFolder.id) {
+              return {
+                ...environment,
+                routes: MoveArrayItem<Route>(
+                  environment.routes,
+                  sourceIndex,
+                  targetIndex
+                )
+              };
+            } else {
+              // moving routes from one folder to another. 
+              // how is the re-ordering logic here? 
+              // since moving to folder only mean updating the parentFolder property of one route,
+              // the route is not physically being moved. So it will still have the same 
+              // order as origin when processing environments
+
+              // we only need the target folder
+              const routeToMove = sourceFolder.routes[action.indexes.sourceIndex];
+              console.log('Move route ' + routeToMove.endpoint,
+                ' from ', sourceFolder.name, ' to ' + targetFolder.name);
+              routeToMove.parentFolder = targetFolder.id;
+
+              return {
+                ...environment
+              };
+            }
+          }
+
+          // this is the origin source code. We keep this as default case
           return {
             ...environment,
             routes: MoveArrayItem<Route>(
@@ -227,10 +277,13 @@ export const environmentReducer = (
         const activeRoute = activeEnvironment.routes.find(
           (route) => route.uuid === action.routeUUID
         );
+        const activeFolder = activeRoute.parentFolder?.slice(
+          activeRoute.parentFolder.indexOf('/') > 0 ? activeRoute.parentFolder.lastIndexOf('/') : 0);
 
         newState = {
           ...state,
           activeRouteUUID: action.routeUUID,
+          activeFolderUUID: activeFolder,
           activeRouteResponseUUID: activeRoute.responses.length
             ? activeRoute.responses[0].uuid
             : null,
@@ -241,6 +294,205 @@ export const environmentReducer = (
         break;
       }
 
+      newState = state;
+      break;
+    }
+
+    case ActionTypes.SET_ACTIVE_FOLDER: {
+      if (action.folderUUID !== state.activeFolderUUID) {
+
+        // validation. return current state immediately if failed
+        const foundFolder = state.environments.find((environment) =>
+          environment.uuid === state.activeEnvironmentUUID)?.folders
+          .find((folder) => folder.uuid === action.folderUUID);
+
+        if (!foundFolder) {
+          //this should never happen
+          newState = state;
+          break;
+        }
+
+        const activeRoute = foundFolder.routes.length > 0 ? foundFolder.routes[0].uuid : null;
+
+        //TODO: what should we do with the current active route?
+        newState = {
+          ...state,
+          activeFolderUUID: action.folderUUID,
+          activeRouteUUID: activeRoute,
+          activeTab: 'RESPONSE',
+          activeView: 'ENV_FOLDERS',
+          environments: state.environments
+        };
+        break;
+      }
+
+      newState = state;
+      break;
+    }
+
+    case ActionTypes.TOOGLE_ACTIVE_FOLDER: {
+      const activeEnvironment = state.environments.find(
+        (environment) => environment.uuid === state.activeEnvironmentUUID);
+
+      if (!activeEnvironment) {
+        console.log('This should never happend');
+        newState = state;
+        break;
+      }
+
+      // validate selected folder
+      const activeFolder = activeEnvironment.folders.find(
+        (folder) => folder.uuid === action.folderUUID
+      );
+
+      if (activeFolder == null) {
+        // this should never happend. 
+        newState = state;
+        break;
+      }
+
+
+      newState = {
+        ...state,
+        activeFolderUUID: action.folderUUID,
+        environments: state.environments.map((env) => {
+          if (env.uuid === activeEnvironment.uuid) {
+            env.folders = env.folders.map((folder) => {
+              if (folder.uuid === action.folderUUID) {
+                folder.isOpen = !folder.isOpen;
+              }
+
+              return folder;
+            });
+          }
+          env.routes = [...env.routes];
+
+          return env;
+        }),
+        activeTab: 'RESPONSE',
+        activeView: 'ENV_FOLDERS'
+      };
+      break;
+    };
+
+    case ActionTypes.UPDATE_ROUTE_FOLDER: {
+      const activeEnvironmentStatus =
+        state.environmentsStatus[state.activeEnvironmentUUID];
+
+      // no need to restarte
+      newState = {
+        ...state,
+        environments: state.environments.map((environment) => {
+          if (environment.uuid === state.activeEnvironmentUUID) {
+            return {
+              ...environment,
+              folders: environment.folders.map((folder) => {
+                if (folder.uuid === state.activeFolderUUID) {
+                  return {
+                    ...folder,
+                    ...action.properties
+                  };
+                }
+
+                return folder;
+              })
+            };
+          }
+
+          return environment;
+        }),
+        environmentsStatus: {
+          ...state.environmentsStatus,
+          [state.activeEnvironmentUUID]: {
+            ...activeEnvironmentStatus,
+          }
+        }
+      };
+      break;
+    }
+
+    case ActionTypes.AUTOGROUP_FOLDER: {
+      newState = {
+        ...state,
+        environments: state.environments.map((environment) => {
+          if (environment.uuid === state.activeEnvironmentUUID) {
+            return {
+              ...action.environment
+            }
+          }
+
+          return environment;
+        })
+      };
+      break;
+    }
+
+    case ActionTypes.ADD_FOLDER: {
+      if (state.environments.length > 0) {
+        const newFolder = action.folder;
+        newState = {
+          ...state,
+          activeRouteUUID: null,
+          activeFolderUUID: newFolder.uuid,
+          activeTab: 'RESPONSE',
+          activeView: 'ENV_FOLDERS',
+          environments: state.environments.map((environment) => {
+            if (environment.uuid === state.activeEnvironmentUUID) {
+              const folders = environment.folders ? [...environment.folders] : [];
+              folders.push(newFolder);
+
+              return {
+                ...environment,
+                folders
+              };
+            }
+
+            return environment;
+          })
+        };
+        break;
+      }
+
+      newState = state;
+      break;
+    }
+
+    case ActionTypes.DELETE_FOLDER: {
+      const activeEnvironment = state.environments.find((env) => env.uuid === state.activeEnvironmentUUID);
+
+      if (activeEnvironment) {
+        newState = {
+          ...state,
+          environments: state.environments.map((env) => {
+            if (env.uuid === activeEnvironment.uuid) {
+              return {
+                ...env,
+                routes: env.routes.map((route) => {
+                  if (route.parentFolder?.indexOf(action.folderUUID) !== -1) {
+                    return {
+                      ...route,
+                      parentFolder: '' //TODO: currently we are movint these routes to the root folder. But it could also be moved to the direct parent folder
+                    };
+                  }
+
+                  return route;
+                }),
+                folders: env.folders?.filter((folder) => folder.uuid !== action.folderUUID),
+              };
+            }
+
+            // nothing to change in other environments
+            return env;
+          }),
+          // when deleting a folder, we select the first route in the root folder. Or if none found, the first one the environment route list
+          activeRouteUUID: activeEnvironment.routes.find((route) => !route.parentFolder)?.uuid ??
+            activeEnvironment.routes[0].uuid,
+          activeFolderUUID: null
+
+        };
+
+        break;
+      }
       newState = state;
       break;
     }
@@ -323,7 +575,7 @@ export const environmentReducer = (
           : null,
         activeRouteResponseUUID:
           activeEnvironment.routes.length &&
-          activeEnvironment.routes[0].responses.length
+            activeEnvironment.routes[0].responses.length
             ? activeEnvironment.routes[0].responses[0].uuid
             : null,
         activeTab: 'RESPONSE',
@@ -388,7 +640,7 @@ export const environmentReducer = (
               : null,
             activeRouteResponseUUID:
               newEnvironments[0].routes.length &&
-              newEnvironments[0].routes[0].responses.length
+                newEnvironments[0].routes[0].responses.length
                 ? newEnvironments[0].routes[0].responses[0].uuid
                 : null
           };
@@ -477,7 +729,7 @@ export const environmentReducer = (
           : null;
         activeRouteResponseUUID =
           action.newEnvironment.routes.length &&
-          action.newEnvironment.routes[0].responses.length
+            action.newEnvironment.routes[0].responses.length
             ? action.newEnvironment.routes[0].responses[0].uuid
             : null;
 
@@ -697,6 +949,7 @@ export const environmentReducer = (
         newState = {
           ...state,
           activeRouteUUID: newRoute.uuid,
+          activeFolderUUID: null,
           activeRouteResponseUUID: newRoute.responses[0].uuid,
           activeTab: 'RESPONSE',
           activeView: 'ENV_ROUTES',
@@ -1093,14 +1346,14 @@ export const environmentReducer = (
     },
     duplicatedRoutes:
       action.type === ActionTypes.ADD_ENVIRONMENT ||
-      action.type === ActionTypes.RELOAD_ENVIRONMENT ||
-      action.type === ActionTypes.ADD_ROUTE ||
-      action.type === ActionTypes.REMOVE_ROUTE ||
-      action.type === ActionTypes.MOVE_ROUTES ||
-      action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
-      (action.type === ActionTypes.UPDATE_ROUTE &&
-        action.properties &&
-        (action.properties.endpoint || action.properties.method))
+        action.type === ActionTypes.RELOAD_ENVIRONMENT ||
+        action.type === ActionTypes.ADD_ROUTE ||
+        action.type === ActionTypes.REMOVE_ROUTE ||
+        action.type === ActionTypes.MOVE_ROUTES ||
+        action.type === ActionTypes.DUPLICATE_ROUTE_TO_ANOTHER_ENVIRONMENT ||
+        (action.type === ActionTypes.UPDATE_ROUTE &&
+          action.properties &&
+          (action.properties.endpoint || action.properties.method))
         ? updateDuplicatedRoutes(newState)
         : newState.duplicatedRoutes
   };

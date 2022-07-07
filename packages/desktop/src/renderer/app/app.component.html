@@ -46,6 +46,11 @@
             class="h-100"
           ></app-environment-routes>
 
+          <app-environment-folders
+            *ngSwitchCase="'ENV_FOLDERS'"
+            class="h-100"
+          ></app-environment-folders>
+
           <app-environment-headers
             *ngSwitchCase="'ENV_HEADERS'"
             class="h-100"

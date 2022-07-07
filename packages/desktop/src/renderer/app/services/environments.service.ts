@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import {
   BuildDemoEnvironment,
   BuildEnvironment,
+  BuildFolder,
   BuildHeader,
   BuildRoute,
   BuildRouteResponse,
@@ -96,12 +97,20 @@ import {
   updateRouteAction,
   updateRouteResponseAction,
   updateSettingsAction,
-  updateUIStateAction
+  updateUIStateAction,
+  toogleActiveFolderAction,
+  addFolderAction,
+  deleteFolderAction,
+  addRouteToFolderAction,
+  updateRouteFolderAction,
+  setActiveFolderAction,
+  autoGroupRoutesAction
 } from 'src/renderer/app/stores/actions';
 import { ReducerDirectionType } from 'src/renderer/app/stores/reducer';
 import { Store } from 'src/renderer/app/stores/store';
 import { Config } from 'src/shared/config';
 import { EnvironmentDescriptor } from 'src/shared/models/settings.model';
+import { RouteFolderProperties, VFolder } from '../models/route-folder.model';
 
 @Injectable({
   providedIn: 'root'
@@ -165,9 +174,9 @@ export class EnvironmentsService extends Logger {
               map((environment) =>
                 environment
                   ? {
-                      environment,
-                      path: environmentItem.path
-                    }
+                    environment,
+                    path: environmentItem.path
+                  }
                   : null
               )
             )
@@ -406,8 +415,9 @@ export class EnvironmentsService extends Logger {
    */
   public setActiveRoute(routeUUIDOrDirection: string | ReducerDirectionType) {
     const activeRouteUUID = this.store.get('activeRouteUUID');
+    const activeFolder = this.store.getActiveFolder();
 
-    if (activeRouteUUID && activeRouteUUID !== routeUUIDOrDirection) {
+    if ((activeRouteUUID || activeFolder) && activeRouteUUID !== routeUUIDOrDirection) {
       if (
         routeUUIDOrDirection === 'next' ||
         routeUUIDOrDirection === 'previous'
@@ -417,6 +427,116 @@ export class EnvironmentsService extends Logger {
         this.store.update(setActiveRouteAction(routeUUIDOrDirection));
       }
     }
+  }
+
+  /**
+   * Set active folder by UUID or navigation. 
+   * Folder can be active and have two different states: opened or closed
+   */
+  public toogleFolder(folderUIDOrDirection: string | ReducerDirectionType) {
+    const activeRouteUUID = this.store.get('activeRouteUUID');
+
+    // FIXME: why do we need ReducerDirectionType here?
+
+    if (activeRouteUUID && activeRouteUUID !== folderUIDOrDirection) {
+
+      // first set active folder
+      //this.store.update(setActiveFolderAction(folderUIDOrDirection));
+      // then toogle folder
+      this.store.update(toogleActiveFolderAction(folderUIDOrDirection));
+    }
+  }
+
+
+  /**
+   * Add a new folder and save it in the store
+   */
+  public addFolder() {
+    if (this.store.getActiveEnvironment()) {
+      this.store.update(
+        addFolderAction(BuildFolder('New Folder'))
+      );
+      //this.eventsService.analyticsEvents.next(AnalyticsEvents.CREATE_ROUTE);
+      this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
+      this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
+    }
+  }
+
+  /**
+   * Auto group existing routes in the current active environemtn by parsing the path and 
+   * group them by the first URL path. Only group if there are more than x routes with the same path
+   * Skip routes, which already has a parentFolder!
+   * For now we are working modifying a envrionment and pass it to reducer. Is there a better way?
+   * 
+   */
+  public autoGroupRoutes() {
+    const activeEnv = this.store.getActiveEnvironment();
+    if (activeEnv) {
+      const routeFolderMap: Map<string, Array<Route>> = new Map();
+
+      activeEnv.routes.filter((route) => !route.parentFolder)
+        .forEach((route) => {
+          // for now assuming that the first path is the prefix. we should also consider the second path 
+          const paths = route.endpoint.split('/');
+          let folderName: string;
+          if (paths.length > 2) {
+            folderName = paths[0] + '/' + paths[1];
+          } else {
+            folderName = route.endpoint.split('/')[0];
+          }
+          if (routeFolderMap.get(folderName)) {
+            routeFolderMap.get(folderName).push(route);
+          } else {
+            routeFolderMap.set(folderName, [route]);
+          }
+        });
+
+      // only create folders if there are more than 2 routes found
+      routeFolderMap.forEach((routes, key) => {
+        if (routes.length >= 2) {
+          let newFolder = BuildFolder(key);
+          activeEnv.folders.push(newFolder);
+
+          routes.forEach((routeToBeUpdated) => { //should be the same object as in active environment
+            routeToBeUpdated.parentFolder = newFolder.uuid;
+          })
+        }
+      })
+
+      this.store.update(autoGroupRoutesAction(activeEnv));
+    }
+  }
+
+  /**
+   * Set selected folder as active
+   */
+  public setActiveFolder(folderUuid: string) {
+    this.store.update(setActiveFolderAction(folderUuid));
+  }
+
+  /**
+   * Update the active folder
+   */
+  public updateActiveFolder(properties: RouteFolderProperties) {
+    this.store.update(updateRouteFolderAction(properties));
+  }
+
+  /**
+   * Add new route to a selected folder
+   */
+  public addNewRouteToFolder(folderUuid: string) {
+    const newRoute = BuildRoute();
+    newRoute.parentFolder = folderUuid;
+    this.addRoute(newRoute);
+  }
+
+  /**
+   * Delete folder. Every route in this folder will be assgned to the parent folder.
+   * TODO: for now we assinged to the root 'parent folder'. But in the future, the routes
+   * should be assigned to the direct parent folder.
+   */
+  public deleteFolder(folderUuid: string) {
+    this.store.update(deleteFolderAction(folderUuid));
   }
 
   /**
@@ -458,10 +578,10 @@ export class EnvironmentsService extends Logger {
         const newEnvironment = environment
           ? environment
           : BuildEnvironment({
-              hasDefaultHeader: true,
-              hasDefaultRoute: true,
-              port: this.dataService.getNewEnvironmentPort()
-            });
+            hasDefaultHeader: true,
+            hasDefaultRoute: true,
+            port: this.dataService.getNewEnvironmentPort()
+          });
 
         // if a non-default name has been set already (imports), do not use the filename
         if (newEnvironment.name === EnvironmentDefault.name) {
@@ -631,9 +751,11 @@ export class EnvironmentsService extends Logger {
   /**
    * Add a new route and save it in the store
    */
-  public addRoute() {
+  public addRoute(route?: Route) {
     if (this.store.getActiveEnvironment()) {
-      this.store.update(addRouteAction(BuildRoute()));
+      route = route || BuildRoute();
+      this.store.update(addRouteAction(route));
+
       this.uiService.scrollRoutesMenu.next(ScrollDirection.BOTTOM);
       this.uiService.focusInput(FocusableInputs.ROUTE_PATH);
     }
@@ -905,7 +1027,9 @@ export class EnvironmentsService extends Logger {
   public moveMenuItem(
     type: DraggableContainerNames,
     sourceIndex: number,
-    targetIndex: number
+    targetIndex: number,
+    sourceContainer?: VFolder,
+    targetContainer?: VFolder
   ) {
     const storeActions = {
       routes: moveRoutesAction,
@@ -913,7 +1037,12 @@ export class EnvironmentsService extends Logger {
       routeResponses: moveRouteResponsesAction
     };
 
-    this.store.update(storeActions[type]({ sourceIndex, targetIndex }));
+    this.store.update(storeActions[type]({ 
+      sourceIndex,
+      targetIndex,
+      sourceContainer,
+      targetContainer
+    }));
   }
 
   /**

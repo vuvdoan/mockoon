@@ -43,6 +43,179 @@
       </ul>
     </div>
 
+      <ng-container *ngIf="vFolder$ | async as rootFolder">
+      <ul
+        class="nav flex-column menu-list"
+        #routesMenu
+        cdkDropListGroup
+      >
+
+        <div> <!--first we render folders and theirs route -->
+          <li
+            class="nav-item"
+            id = "{{folder.id}}"
+            *ngFor="let folder of rootFolder.children"
+            cdkDropList
+            [cdkDropListData]="folder"
+            (cdkDropListDropped)="reorderRoutes($event, true)"
+          >
+              <div
+                *ngIf="settings$ | async as settings"
+                class="route-path"
+                [ngClass]="{
+                ellipsis: settings.truncateRouteName,
+                'text-break': !settings.truncateRouteName
+                }"
+              >
+                <!-- TODO: Add new style for folder -->
+                <div class="{{ folder.name}}-header">
+                  <a
+                    class="nav-link"
+                    [ngClass]="{ 
+                      active: (activeFolder$ | async)?.uuid === folder.id
+                    }"
+                    (dblclick)="toggleFolder(folder.id)"
+                    (click)="selectFolder(folder.id)"
+                    (contextmenu)="openContextMenu(folder.id, $event, true)"
+                  >
+                    <span> 
+                    <app-svg icon="{{isFolderOpen(folder.id)? 'folder_open': 'folder'}}" ></app-svg>
+                    </span>
+                  {{ folder.name }}
+                  </a>
+                </div>
+
+                <!-- Routes in folder -->
+                <div 
+                  *ngIf = "isFolderOpen(folder.id)"
+                  id="{{folder.name}}-routes" 
+                >
+                  <ul>
+                    <li
+                      class="nav-item"
+                      *ngFor="let route of folder.routes"
+                      cdkDrag
+                      [cdkDragData]="route"
+                      cdkDragLockAxis="y"
+                      cdkDragBoundary=".routes-menu .nav.menu-list"
+                      [cdkDragDisabled]="dragIsDisabled"
+                    >
+                      <a
+                        class="nav-link"
+                        [ngClass]="{
+                        active: (activeRoute$ | async)?.uuid ===  route.uuid,
+                        'route-disabled': !route.enabled
+                        }"
+                        (click)="selectRoute(route.uuid)"
+                        (contextmenu)="openContextMenu(route.uuid, $event)"
+                      >
+                        <div
+                          *ngIf="settings$ | async as settings"
+                          class="route-path"
+                          [ngClass]="{
+                          ellipsis: settings.truncateRouteName,
+                          'text-break': !settings.truncateRouteName
+                          }"
+                        >
+                          <span
+                            *ngIf="duplicatedRoutes$ | async as duplicatedRoutes"
+                            class="text-warning"
+                            ngbTooltip="Route is duplicated (same endpoint and method)"
+                          ><app-svg
+                              *ngIf="
+                              duplicatedRoutes[activeEnvironment.uuid]?.has(
+                              route.uuid
+                              )
+                              "
+                              icon="warning"
+                              class="pr-2"
+                            ></app-svg>
+                          </span>
+                          <span
+                            class="badge badge-default http-method-{{
+                            route.method
+                            }} float-right"
+                          >{{ route.method | uppercase }}</span
+                          >
+                          /{{ route.endpoint }}
+                        </div>
+                        <div class="menu-subtitle ellipsis">
+                          {{ route.documentation }}
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+
+                </div>
+              </div>
+          </li>
+        </div>
+
+          <!-- Second we render the routes without any defined parent folder -->
+        <div 
+          cdkDropList
+          [cdkDropListData]="rootFolder"
+          (cdkDropListDropped)="reorderRoutes($event, true)"
+          id = "root"
+        > 
+          <li
+            class="nav-item"
+            *ngFor="let environmentRoute of rootFolder.routes"
+            cdkDrag
+            [cdkDragData]="environmentRoute"
+            cdkDragLockAxis="y"
+            cdkDragBoundary=".routes-menu .nav.menu-list"
+            [cdkDragDisabled]="dragIsDisabled"
+          >
+            <a
+              class="nav-link"
+              [ngClass]="{
+                active: (activeRoute$ | async)?.uuid === environmentRoute.uuid,
+                'route-disabled': !environmentRoute.enabled
+              }"
+              (click)="selectRoute(environmentRoute.uuid)"
+              (contextmenu)="openContextMenu(environmentRoute.uuid, $event)"
+            >
+              <div
+                *ngIf="settings$ | async as settings"
+                class="route-path"
+                [ngClass]="{
+                  ellipsis: settings.truncateRouteName,
+                  'text-break': !settings.truncateRouteName
+                }"
+              >
+                <span
+                  *ngIf="duplicatedRoutes$ | async as duplicatedRoutes"
+                  class="text-warning"
+                  ngbTooltip="Route is duplicated (same endpoint and method)"
+                  ><app-svg
+                    *ngIf="
+                      duplicatedRoutes[activeEnvironment.uuid]?.has(
+                        environmentRoute.uuid
+                      )
+                    "
+                    icon="warning"
+                    class="pr-2"
+                  ></app-svg>
+                </span>
+                <span
+                  class="badge badge-default http-method-{{
+                    environmentRoute.method
+                  }} float-right"
+                  >{{ environmentRoute.method | uppercase }}</span
+                >
+                /{{ environmentRoute.endpoint }}
+              </div>
+              <div class="menu-subtitle ellipsis">
+                {{ environmentRoute.documentation }}
+              </div>
+            </a>
+          </li>
+        </div>
+      </ul>
+    </ng-container>
+
+    <!--
     <ng-container *ngIf="routeList$ | async as routeList">
       <ul
         class="nav flex-column menu-list"
@@ -104,6 +277,8 @@
         </li>
       </ul>
     </ng-container>
+
+-->
 
     <div
       appResizeColumn

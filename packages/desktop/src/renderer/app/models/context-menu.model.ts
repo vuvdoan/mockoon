@@ -17,7 +17,9 @@ export type ContextMenuItemPayload = {
     | 'showInFolder'
     | 'copyJSON'
     | 'copyFullPath'
-    | 'toggle';
+    | 'toggle'
+    | 'addNewRouteToFolder'
+    | 'deleteFolder';
   subjectUUID: string;
 };
 

@@ -3,6 +3,7 @@ import {
   EnvironmentDefault,
   ResponseRuleDefault,
   RouteDefault,
+  RouteFolderDefault,
   RouteResponseDefault
 } from '../constants/environment-schema.constants';
 import { CloneObject } from '../libs/utils';
@@ -14,6 +15,7 @@ import {
   Route,
   RouteResponse
 } from '../models/route.model';
+import { RouteFolder } from '../models/routeFolder.model';
 
 /**
  * Build a new environment or route response header
@@ -54,6 +56,15 @@ export const BuildRoute = (hasDefaultRouteResponse = true): Route => ({
   responses: hasDefaultRouteResponse
     ? [{ ...BuildRouteResponse(), default: true }]
     : []
+});
+
+/**
+* Build a new folder
+*/
+export const BuildFolder = (fName: string): RouteFolder => ({
+  ...RouteFolderDefault,
+  uuid: uuid(),
+  folderName: fName
 });
 
 /**

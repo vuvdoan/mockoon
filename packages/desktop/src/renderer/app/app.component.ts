@@ -161,6 +161,20 @@ export class AppComponent extends Logger implements OnInit, AfterViewInit {
           );
         }
         break;
+      case 'addNewRouteToFolder':
+        if (payload.subject === 'routeFolder') {
+          this.environmentsService.addNewRouteToFolder(
+            payload.subjectUUID
+          );
+        }
+        break;
+      case 'deleteFolder':
+        if (payload.subject === 'routeFolder') {
+          this.environmentsService.deleteFolder(
+            payload.subjectUUID
+          );
+        }
+        break;
     }
   }
 
