@@ -434,17 +434,13 @@ export class EnvironmentsService extends Logger {
    * Folder can be active and have two different states: opened or closed
    */
   public toogleFolder(folderUIDOrDirection: string | ReducerDirectionType) {
-    const activeRouteUUID = this.store.get('activeRouteUUID');
+      // first set active folder
+      this.store.update(setActiveFolderAction(folderUIDOrDirection));
+      // then toogle folder
+      this.store.update(toogleActiveFolderAction(folderUIDOrDirection));
 
     // FIXME: why do we need ReducerDirectionType here?
 
-    if (activeRouteUUID && activeRouteUUID !== folderUIDOrDirection) {
-
-      // first set active folder
-      //this.store.update(setActiveFolderAction(folderUIDOrDirection));
-      // then toogle folder
-      this.store.update(toogleActiveFolderAction(folderUIDOrDirection));
-    }
   }
 
 
